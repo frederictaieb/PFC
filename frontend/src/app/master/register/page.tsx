@@ -36,8 +36,8 @@ export default function RegisterPage() {
   }, [result, router]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 space-y-8">
-      <div className="flex flex-col items-center space-y-4">
+    <div className="flex flex-col items-center pt-10 min-h-screen bg-gray-50 space-y-8">
+      <div className="flex flex-col space-y-4">
         <input
           type="text"
           placeholder="Enter username"

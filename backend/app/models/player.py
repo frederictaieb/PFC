@@ -17,6 +17,9 @@ class Player(Client):
         self.ipfs_images = ipfs_images or []
         logger.info(f"Player {self.username} created with wallet {self.wallet.address}")
 
+    def get_wallet_address(self):
+        return self.wallet.address
+
     def add_ipfs_image(self, image_path: str):
         ipfs_url = os.getenv("IPFS_URL")
         img_ipfs_url = upload_file(ipfs_url, image_path)

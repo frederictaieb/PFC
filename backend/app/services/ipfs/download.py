@@ -1,5 +1,5 @@
 import requests
-from utils.logger import logger_init
+from app.utils.logger import logger_init
 import logging
 
 logger_init(level=logging.INFO)

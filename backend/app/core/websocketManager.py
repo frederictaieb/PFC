@@ -1,6 +1,6 @@
 from fastapi import WebSocket
 import logging
-from utils.logger import logger_init
+from app.utils.logger import logger_init
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -30,4 +30,4 @@ class WebSocketManager:
             await ws.send_json(message)
         logger.info(f"WebSocket message broadcasted to {len(self.connections)} connections")
 
-ws_manager = WebSocketManager()
+websocket_pool = WebSocketManager()

@@ -1,21 +1,27 @@
-from models.client import Client
-from services.xrp.wallet import create_wallet
-from services.ipfs.upload import upload_file
+from app.models.client import Client
+from app.services.xrp.wallet import create_wallet
+from app.services.ipfs.upload import upload_file
+from xrpl.wallet import Wallet
 import dotenv
 import os
 import logging
-from utils.logger import logger_init
+from app.utils.logger import logger_init
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
 dotenv.load_dotenv()
 
 class Player(Client):
-    def __init__(self, username: str, ipfs_images: list[str] = None):
+    def __init__(self, username: str, wallet: Wallet, ipfs_images: list[str] = None):
         super().__init__(username)
-        self.wallet = create_wallet()
+        self.wallet = wallet
         self.ipfs_images = ipfs_images or []
         logger.info(f"Player {self.username} created with wallet {self.wallet.address}")
+
+    @classmethod
+    async def create(cls, username: str):
+        wallet = await create_wallet()
+        return cls(username, wallet)
 
     def get_wallet_address(self):
         return self.wallet.address

@@ -4,12 +4,36 @@ import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";   
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function StartPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState<number | string | null>(null)
 
   const handleStart = async () => {
-    setLoading(true);
+    try {
+
+      const response = await fetch("https://pfc.frederictaieb.com/api/game/start", {
+        method: "POST",
+      })
+
+      // 1. Appel API
+      if (!response.ok) throw new Error('Erreur lors du démarrage du jeu')
+      console.log(response);
+
+      // 2. Décompte
+      const steps = [3, 2, 1, 'GO']
+      for (let i = 0; i < steps.length; i++) {
+        setCountdown(steps[i])
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+
+      // 3. Redirection
+      router.push('/game')
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   return (
@@ -22,9 +46,9 @@ export default function StartPage() {
       <button
           onClick={handleStart}
           disabled={loading}
-          className="text-2xl mt-8 px-8 py-4 rounded-xl bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition-all disabled:opacity-50 w-64"
+          className={`text-2xl mt-8 px-8 py-4 rounded-xl ${countdown !== null  ? "bg-red-600" : "bg-blue-600"} text-white font-bold shadow hover:bg-blue-700 transition-all disabled:opacity-50 w-64`}
         >
-          Start
+        {countdown !== null ? countdown : "Start"}
         </button>
     </div>
   );

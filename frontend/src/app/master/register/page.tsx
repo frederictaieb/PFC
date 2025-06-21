@@ -43,12 +43,12 @@ export default function RegisterPage() {
           placeholder="Enter username"
           value={username}
           onChange={e => setUsername(e.target.value)}
-          className="px-4 py-2 border rounded-lg text-lg"
+          className="px-4 py-4 border rounded-xl text-lg w-64 text-center"
         />
         <button
           onClick={handleRegister}
           disabled={loading || !username}
-          className="text-2xl px-8 py-4 rounded-xl bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition-all disabled:opacity-50"
+          className="px-8 py-4 rounded-xl text-lg w-64 text-center font-bold text-white bg-blue-600 hover:bg-blue-700 shadow transition-all disabled:opacity-50"
         >
           {loading ? "Loading..." : "Register"}
         </button>

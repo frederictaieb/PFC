@@ -1,6 +1,6 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import api
+from app.routes import player, game
 from app.routes import websocket as ws_route
 
 app = FastAPI()
@@ -13,10 +13,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inclure les routes HTTP sous le préfixe "/eaim/fastapi"
-app.include_router(api.router)
+@app.on_event("startup")
+def setup_game_state():
+    app.state.game_started = False
 
-# Ajouter la route WebSocket manuellement (sans le routeur)
+# Routes API
+app.include_router(player.router, prefix="/api/player", tags=["Player"])
+app.include_router(game.router, prefix="/api/game", tags=["Game"])
+
+# WebSocket
 @app.websocket("/ws/{username}")
 async def websocket_entrypoint(websocket: WebSocket, username: str):
     await ws_route.websocket_endpoint(websocket, username)

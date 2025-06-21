@@ -53,10 +53,11 @@ export default function RegisterPage() {
           disabled={clicked}
         />
         <button 
+          disabled={clicked}
           onClick={handleRegister} 
           className="px-8 py-4 rounded-xl text-lg w-64 text-center font-bold text-white bg-blue-600 hover:bg-blue-700 shadow transition-all disabled:opacity-50"
         >
-          {registered ? "Loading..." : "Register"}
+          {registered ? "Waiting..." : "Register"}
         </button>
       </div>
     </div>

@@ -1,17 +1,14 @@
 from fastapi import WebSocket, WebSocketDisconnect
-from app.models.client import Client
-from typing import List
+from app.core.playerPool import player_pool
+import logging
 
-clients: List[Client] = []
+logger = logging.getLogger(__name__)
 
 async def websocket_endpoint(websocket: WebSocket, username: str):
-    await websocket.accept()
-    client = Client(username=username, websocket=websocket)
-    clients.append(client)
-
     try:
+        await player_pool.connect_websocket(username, websocket)
         while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"Hello {username}, you said: {data}")
+            await websocket.receive_text()
     except WebSocketDisconnect:
-        clients.remove(client)
+        player_pool.disconnect_websocket(username)
+        logger.info(f"WebSocket disconnected for {username}")

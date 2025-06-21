@@ -14,7 +14,7 @@ export default function StartPage() {
   const handleStart = async () => {
     try {
 
-      const response = await fetch("https://pfc.frederictaieb.com/api/game/start", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/start`, {
         method: "POST",
       })
 
@@ -40,8 +40,8 @@ export default function StartPage() {
     <div className="flex flex-col items-center pt-10">
       <h1 className="text-6xl md:text-8xl font-bold text-gray-800 pt-4">AIcebreaker</h1>
       <div className="pt-8"><Image src="/xrp-logo.svg" alt="AIcebreaker" width={100} height={100} /></div>
-      <div className="pt-8"><QRCodeSVG value={`${process.env.NEXT_PUBLIC_FASTAPI_URL}/master/register`} size={256} /></div>
-      <div className="pt-4 text-center">Scan the QR code to <Link href={`${process.env.NEXT_PUBLIC_FASTAPI_URL}/master/register`}>
+      <div className="pt-8"><QRCodeSVG value={`${process.env.NEXT_PUBLIC_FASTAPI_URL}/player/register`} size={256} /></div>
+      <div className="pt-4 text-center">Scan the QR code to <Link href={`${process.env.NEXT_PUBLIC_FASTAPI_URL}/player/register`}>
       <div className="underline font-bold text-blue-700">register</div></Link></div>
       <button
           onClick={handleStart}

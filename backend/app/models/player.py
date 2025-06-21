@@ -6,10 +6,24 @@ import dotenv
 import os
 import logging
 from app.utils.logger import logger_init
+from pydantic import BaseModel
+from typing import List, Optional
+from decimal import Decimal
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
 dotenv.load_dotenv()
+
+class WalletInfo(BaseModel):
+    address: str
+    public_key: str
+    balance: Optional[Decimal] = None  # ou float
+
+class PlayerInfo(BaseModel):
+    username: str
+    wallet: WalletInfo
+    connected: bool
+    ipfs_images: List[str]
 
 class Player(Client):
     def __init__(self, username: str, wallet: Wallet, ipfs_images: list[str] = None):

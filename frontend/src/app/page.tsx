@@ -26,7 +26,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-100 text-center">
-      <h1 className="text-3xl font-bold mb-4">PFC</h1>
+      <h1 className="text-3xl font-bold mb-4">AIcebreaker</h1>
       <p className="mb-2">API Response: <strong>{apiMessage}</strong></p>
       <input
         type="text"

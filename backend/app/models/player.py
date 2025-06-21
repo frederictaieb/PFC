@@ -15,7 +15,6 @@ class Player(Client):
         super().__init__(username)
         self.wallet = create_wallet()
         self.ipfs_images = ipfs_images or []
-        print("coucou")
         logger.info(f"Player {self.username} created with wallet {self.wallet.address}")
 
     def add_ipfs_image(self, image_path: str):

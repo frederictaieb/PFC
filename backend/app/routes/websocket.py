@@ -1,45 +1,57 @@
 from fastapi import WebSocket, WebSocketDisconnect
 from app.core.userPool import user_pool
 import logging
+from app.utils.logger import logger_init
 
+logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-async def websocket_endpoint(websocket: WebSocket):
+
+async def websocket_manager(websocket: WebSocket, username: str):
     await websocket.accept()
-    user_pool.add_anonymous(websocket)
-    username = None  # sera défini si l'utilisateur s'enregistre
+    logger.info(f"User {username} connected via WebSocket")
 
     try:
+        if username == "master":
+            master_session = user_pool.get("master")
+            if master_session:
+                master_session.websocket = websocket
+                logger.info("Master WebSocket session initialized.")
+            else:
+                logger.warning("Master session does not exist in user pool.")
+
+        elif username.startswith("anon-"):
+            user_pool.add_anonymous(websocket)
+            logger.info(f"Anonymous socket {websocket} added to user_pool.anonymous_sockets")
+
+        else:
+            session = user_pool.get(username)
+            if session:
+                session.websocket = websocket
+                logger.info(f"WebSocket assigned to session for user: {username}")
+            else:
+                logger.warning(f"No session found for user {username}")
+
         while True:
             data = await websocket.receive_json()
-
-            if data.get("type") == "register":
-                username = data.get("username")
-                if not username:
-                    await websocket.send_json({"type": "error", "message": "Username is required"})
-                    continue
-
-                if user_pool.username_exists(username):
-                    await websocket.send_json({"type": "error", "message": "Username already taken"})
-                    continue
-
-                session = await user_pool.create_user(username)
-                session.websocket = websocket
-                user_pool.remove_anonymous(websocket)
-                await websocket.send_json({"type": "register_success", "message": f"Welcome {username}"})
-                logger.info(f"{username} registered and connected")
-
-            elif username:
-                # Traiter les messages utilisateurs ici
-                logger.info(f"Message from {username}: {data}")
-                # Exemple : await user_pool.broadcast({...})
-            else:
-                logger.info(f"Anonymous message: {data}")
+            logger.info(f"Received data: {data} from {username}")
+            await websocket.send_text(f"{username}: {data}")
 
     except WebSocketDisconnect:
-        if username:
-            user_pool.disconnect_websocket(username)
-            logger.info(f"WebSocket disconnected for {username}")
-        else:
+        logger.info(f"User {username} disconnected from WebSocket")
+
+        if username.startswith("anon-"):
             user_pool.remove_anonymous(websocket)
-            logger.info("Anonymous WebSocket disconnected")
+            logger.info(f"Anonymous socket {websocket} removed from pool")
+
+        elif username == "master":
+            session = user_pool.get("master")
+            if session and session.websocket == websocket:
+                session.websocket = None
+                logger.info("Master WebSocket cleared")
+
+        else:
+            session = user_pool.get(username)
+            if session and session.websocket == websocket:
+                session.websocket = None
+                logger.info(f"WebSocket cleared for user: {username}")

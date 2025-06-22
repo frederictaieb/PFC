@@ -1,6 +1,6 @@
 export const registerPlayer = async (username: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/player/register_player`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/user/register_user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username }),

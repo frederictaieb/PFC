@@ -44,7 +44,7 @@ class UserPool:
                     await ws.send_json(message)
                 except:
                     logger.warning("Failed to send to anonymous socket")
-        logger.info("Broadcast message sent")
+        logger.info(f"Broadcast {message} sent to {len(self.sessions)} users and {len(self.anonymous_sockets)} anonymous sockets")
 
     async def create_master(self):
         await self.create_user("master")

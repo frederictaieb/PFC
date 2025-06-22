@@ -22,11 +22,19 @@ async def start_game(request: Request):
     logger.info("Starting game countdown...")
 
     for i in reversed(range(1, 4)):
-        await user_pool.broadcast({"message": f"{i}"}, include_anonymous=True)
+        await user_pool.broadcast(
+            {"type": "countdown", "value": str(i)}, include_anonymous=True
+        )
         await asyncio.sleep(1)
 
-    await user_pool.broadcast({"message": f"GO"}, include_anonymous=True)
+    await user_pool.broadcast(
+        {"type": "countdown", "value": "GO"}, include_anonymous=True
+    )
+
     request.app.state.game_started = True
 
-    await user_pool.broadcast({"message": f"Game started!"}, include_anonymous=True)
+    await user_pool.broadcast(
+        {"type": "info", "value": "Game started!"}, include_anonymous=True
+    )
+
     return {"message": "Game started!"}

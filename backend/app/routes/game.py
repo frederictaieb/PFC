@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from fastapi import Request
-from app.core.playerPool import player_pool
+from app.core.playerPool import user_pool
 
 
 from app.utils.logger import logger_init
@@ -20,6 +20,6 @@ def get_game_status(request: Request):
 @router.post("/start")
 def start_game(request: Request):
     request.app.state.game_started = True
-    player_pool.broadcast({"message": "Game started!"})
+    user_pool.broadcast({"message": "Game started!"})
     logger.info(f"Game started: {request.app.state.game_started}")
     return {"message": "Game started!"}

@@ -51,4 +51,4 @@ class PlayerPool:
                 await session.send(message)
         logger.info("Broadcast message sent")
 
-player_pool = PlayerPool()
+user_pool = PlayerPool()

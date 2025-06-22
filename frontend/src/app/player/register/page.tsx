@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { checkGameStatus } from "@/api/game";
+import { registerPlayer } from "@/api/player";
 
 export default function RegisterPage() {
 
@@ -21,22 +22,6 @@ export default function RegisterPage() {
     fetchStatus();
   }, []);
 
-  const handleRegister = async () => {
-    setClicked(true);
-
-    const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/player/register_player`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username }),
-    });
-
-    if (res.ok) {
-      setRegistered(true);
-    } else {
-      alert("Erreur : nom déjà utilisé ?");
-    }
-  };
-
   useEffect(() => {
     if (!registered) return;
 
@@ -51,6 +36,19 @@ export default function RegisterPage() {
 
     return () => socket.close();
   }, [registered]);
+
+  const handleRegister = async () => {
+    setClicked(true);
+
+    const result = await registerPlayer(username);
+  
+    if (result.success) {
+      setRegistered(true);
+    } else {
+      alert(result.error);
+      setClicked(false); // Permet de réessayer
+    }
+  };
 
   return (
     <div className="flex flex-col items-center pt-10 min-h-screen bg-gray-50 space-y-8">

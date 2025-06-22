@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.models.player import Player
-from app.core.playerPool import player_pool
+from app.core.playerPool import user_pool
 from app.services.xrp.wallet import get_xrp_balance
 from typing import List
 
@@ -27,13 +27,13 @@ class RegisterPayload(BaseModel):
 @router.post("/register_player")
 async def register_player(payload: RegisterPayload):
     username = payload.username
-    await player_pool.create_player(username)
+    await user_pool.create_player(username)
     logger.info(f"Player {username} created")
     return {"message": "Player registered", "player": username}
 
 @router.get("/get_player", response_model=PlayerInfo)
 async def get_player(username: str):
-    session = player_pool.get(username)
+    session = user_pool.get(username)
     if not session:
         raise HTTPException(status_code=404, detail="Player not found")
 
@@ -55,7 +55,7 @@ async def get_player(username: str):
 
 @router.get("/get_players", response_model=List[PlayerInfo])
 async def get_players():
-    sessions = list(player_pool.sessions.values())
+    sessions = list(user_pool.sessions.values())
 
     # Étape 1 : préparer les adresses
     addresses = [s.player.wallet.classic_address for s in sessions]

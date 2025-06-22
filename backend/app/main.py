@@ -13,6 +13,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Sockets for not registered players
+app.state.waiting_sockets = set()
+
+# State of the game initialized false at startup
 @app.on_event("startup")
 def setup_game_state():
     app.state.game_started = False

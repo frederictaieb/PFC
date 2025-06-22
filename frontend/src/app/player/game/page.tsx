@@ -40,14 +40,22 @@ export default function CameraPage() {
 
         if (results.multiHandLandmarks) {
           for (const landmarks of results.multiHandLandmarks) {
+            // Connecteurs en jaune doré
             drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {
-              color: "#FFD700",
+              color: "#00FF00",
               lineWidth: 1,
             });
-            drawLandmarks(ctx, landmarks, {
-              color: "#0000BB",
-              radius: 5
-            });
+
+            // Landmarks manuels en bleu foncé petit
+            for (const point of landmarks) {
+              const x = point.x * canvas.width;
+              const y = point.y * canvas.height;
+
+              ctx.beginPath();
+              ctx.arc(x, y, 3.1, 0, 2 * Math.PI); // 👈 Taille contrôlée ici
+              ctx.fillStyle = "#FF0000";
+              ctx.fill();
+            }
           }
         }
 
@@ -95,6 +103,7 @@ export default function CameraPage() {
           width: "480px",
           height: "480px",
           borderRadius: "12px",
+          border: "0.5px solid #ccc",
         }}
       />
     </div>

@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from fastapi import Request
 from app.core.userPool import user_pool
 import asyncio
-
+import random
 from app.utils.logger import logger_init
 import logging
 
@@ -17,7 +17,7 @@ def get_game_status(request: Request):
     logger.info(f"Getting game status: {request.app.state.game_started}")
     return {"game_started": request.app.state.game_started}
 
-@router.post("/start")
+@router.post("/startGame")
 async def start_game(request: Request):
     logger.info("Starting game countdown...")
 
@@ -38,3 +38,23 @@ async def start_game(request: Request):
     )
 
     return {"message": "Game started!"}
+
+@router.post("/startRound")
+async def start_round(request: Request):
+    logger.info("Starting game countdown...")
+
+    for i in range(1, 4):
+        await user_pool.broadcast(
+            {"type": "countdown", "value": str(i)}, include_anonymous=True
+        )
+        await asyncio.sleep(1)
+
+    result = random.randint(0, 2)
+    logger.info(f"Result: {result}")
+
+    await user_pool.broadcast(
+        {"type": "result", "value": result}, include_anonymous=True
+    )
+
+    return {"result": "Round started!"}
+ 

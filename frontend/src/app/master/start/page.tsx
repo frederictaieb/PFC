@@ -5,6 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";   
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { startGame } from "@/api/game/startGame";
 
 export default function StartPage() {
   const router = useRouter();
@@ -37,13 +38,10 @@ export default function StartPage() {
     }
   }, [router]);
 
-  const handleStart = async () => {
+  const handleStartGame = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/start`, {
-        method: "POST",
-      });
-      if (!response.ok) throw new Error("Erreur lors du démarrage du jeu");
+      startGame();
     } catch (err) {
       console.error(err);
     } finally {
@@ -74,7 +72,7 @@ export default function StartPage() {
       </div>
 
       <button
-        onClick={handleStart}
+        onClick={handleStartGame}
         disabled={loading || countdown !== null}
         className="text-2xl mt-8 px-8 py-4 rounded-xl bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition-all disabled:opacity-50 w-64"
       >

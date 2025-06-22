@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { checkGameStatus } from "@/api/game";
+import { checkGameStatus } from "@/api/game/checkGameStatus";
 import { registerPlayer } from "@/api/player";
 import { v4 as uuidv4 } from "uuid";
 

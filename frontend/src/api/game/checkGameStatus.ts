@@ -1,4 +1,5 @@
 export const checkGameStatus = async (): Promise<boolean> => {
+    console.log("checkGameStatus");
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/status`);
       const data = await res.json();

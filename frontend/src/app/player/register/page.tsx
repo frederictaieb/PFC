@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { checkGameStatus } from "@/api/game";
 
 export default function RegisterPage() {
 
@@ -9,6 +10,16 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [registered, setRegistered] = useState(false);
   const [clicked, setClicked] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const started = await checkGameStatus();
+      setGameStarted(started);
+    };
+  
+    fetchStatus();
+  }, []);
 
   const handleRegister = async () => {
     setClicked(true);
@@ -50,14 +61,14 @@ export default function RegisterPage() {
           onChange={(e) => setUsername(e.target.value)}
           className="px-4 py-4 border rounded-xl text-lg w-64 text-center"
           placeholder="Enter username"
-          disabled={clicked}
+          disabled={clicked || gameStarted}
         />
         <button 
-          disabled={clicked}
+          disabled={clicked || gameStarted}
           onClick={handleRegister} 
           className="px-8 py-4 rounded-xl text-lg w-64 text-center font-bold text-white bg-blue-600 hover:bg-blue-700 shadow transition-all disabled:opacity-50"
         >
-          {registered ? "Waiting..." : "Register"}
+          {registered ? "Waiting..." : gameStarted ? "Game in progress" : "Register"}
         </button>
       </div>
     </div>

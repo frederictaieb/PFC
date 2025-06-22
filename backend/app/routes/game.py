@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Request
+from app.core.playerPool import player_pool
+
 
 from app.utils.logger import logger_init
 import logging

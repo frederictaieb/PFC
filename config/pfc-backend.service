@@ -1,0 +1,16 @@
+[Unit]
+Description=PFC
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/APPS/PFC/backend
+ExecStart=/opt/APPS/PFC/backend/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 7001 --reload
+RestartSec=3
+Environment=PYTHONUNBUFFERED=1
+
+StandardOutput=append:/var/log/pfc-backend.log
+StandardError=append:/var/log/pfc-backend.log
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=PFC
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/APPS/PFC/frontend
+ExecStart=/root/.nvm/versions/node/v22.16.0/bin/pnpm dev -p 3001
+Restart=always
+RestartSec=5
+Environment=PATH=/root/.nvm/versions/node/v22.16.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+StandardOutput=append:/var/log/pfc-frontend.log
+StandardError=append:/var/log/pfc-frontend.log
+
+[Install]
+WantedBy=multi-user.target

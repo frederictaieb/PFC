@@ -19,18 +19,18 @@ class WalletInfo(BaseModel):
     public_key: str
     balance: Optional[Decimal] = None  # ou float
 
-class PlayerInfo(BaseModel):
+class UserInfo(BaseModel):
     username: str
     wallet: WalletInfo
     connected: bool
     ipfs_images: List[str]
 
-class Player(Client):
+class User(Client):
     def __init__(self, username: str, wallet: Wallet, ipfs_images: list[str] = None):
         super().__init__(username)
         self.wallet = wallet
         self.ipfs_images = ipfs_images or []
-        logger.info(f"Player {self.username} created with wallet {self.wallet.address}")
+        logger.info(f"User {self.username} created with wallet {self.wallet.address}")
 
     @classmethod
     async def create(cls, username: str):
@@ -58,4 +58,4 @@ class Player(Client):
         self.ipfs_images.clear()
 
     def __repr__(self):
-        return f"<Player(username={self.username}, wallet={self.wallet.address}, images={len(self.ipfs_images)})>"
+        return f"<User(username={self.username}, wallet={self.wallet.address}, images={len(self.ipfs_images)})>"

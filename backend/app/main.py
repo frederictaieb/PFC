@@ -1,6 +1,6 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import player, game
+from app.routes import user, game
 from app.routes import websocket as ws_route
 
 app = FastAPI()
@@ -13,7 +13,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Sockets for not registered players
+# Sockets for not registered users
 app.state.waiting_sockets = set()
 
 # State of the game initialized false at startup
@@ -22,7 +22,7 @@ def setup_game_state():
     app.state.game_started = False
 
 # Routes API
-app.include_router(player.router, prefix="/api/player", tags=["Player"])
+app.include_router(user.router, prefix="/api/user", tags=["User"])
 app.include_router(game.router, prefix="/api/game", tags=["Game"])
 
 # WebSocket

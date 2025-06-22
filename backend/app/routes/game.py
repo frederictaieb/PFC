@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Request
-from app.core.playerPool import user_pool
-
+from app.core.userPool import user_pool
+import asyncio
 
 from app.utils.logger import logger_init
 import logging
@@ -18,8 +18,15 @@ def get_game_status(request: Request):
     return {"game_started": request.app.state.game_started}
 
 @router.post("/start")
-def start_game(request: Request):
+async def start_game(request: Request):
+    logger.info("Starting game countdown...")
+
+    for i in reversed(range(1, 4)):
+        await user_pool.broadcast({"message": f"{i}"}, include_anonymous=True)
+        await asyncio.sleep(1)
+
+    await user_pool.broadcast({"message": f"GO"}, include_anonymous=True)
     request.app.state.game_started = True
-    user_pool.broadcast({"message": "Game started!"})
-    logger.info(f"Game started: {request.app.state.game_started}")
+
+    await user_pool.broadcast({"message": f"Game started!"}, include_anonymous=True)
     return {"message": "Game started!"}

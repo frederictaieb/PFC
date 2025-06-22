@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException
-from app.models.player import Player
-from app.core.playerPool import user_pool
+from app.models.user import User
+from app.core.userPool import user_pool
 from app.services.xrp.wallet import get_xrp_balance
 from typing import List
 
 import asyncio
 
 from pydantic import BaseModel
-from app.models.player import PlayerInfo, WalletInfo
+from app.models.user import UserInfo, WalletInfo
 
 from app.utils.logger import logger_init
 import logging
@@ -24,41 +24,41 @@ async def helloworld():
 class RegisterPayload(BaseModel):
     username: str
 
-@router.post("/register_player")
-async def register_player(payload: RegisterPayload):
+@router.post("/register_user")
+async def register_user(payload: RegisterPayload):
     username = payload.username
-    await user_pool.create_player(username)
-    logger.info(f"Player {username} created")
-    return {"message": "Player registered", "player": username}
+    await user_pool.create_user(username)
+    logger.info(f"User {username} created")
+    return {"message": "User registered", "user": username}
 
-@router.get("/get_player", response_model=PlayerInfo)
-async def get_player(username: str):
+@router.get("/get_user", response_model=UserInfo)
+async def get_user(username: str):
     session = user_pool.get(username)
     if not session:
-        raise HTTPException(status_code=404, detail="Player not found")
+        raise HTTPException(status_code=404, detail="User not found")
 
-    address = session.player.wallet.classic_address
+    address = session.user.wallet.classic_address
 
     # Même si c’est un seul appel, on peut l’harmoniser :
     [balance] = await asyncio.gather(get_xrp_balance(address))
 
-    return PlayerInfo(
-        username=session.player.username,
+    return UserInfo(
+        username=session.user.username,
         wallet=WalletInfo(
             address=address,
-            public_key=session.player.wallet.public_key,
+            public_key=session.user.wallet.public_key,
             balance=balance
         ),
         connected=session.is_connected(),
-        ipfs_images=session.player.get_all_images()
+        ipfs_images=session.user.get_all_images()
     )
 
-@router.get("/get_players", response_model=List[PlayerInfo])
-async def get_players():
+@router.get("/get_users", response_model=List[UserInfo])
+async def get_users():
     sessions = list(user_pool.sessions.values())
 
     # Étape 1 : préparer les adresses
-    addresses = [s.player.wallet.classic_address for s in sessions]
+    addresses = [s.user.wallet.classic_address for s in sessions]
 
     # Étape 2 : récupérer toutes les balances en parallèle
     balances = await asyncio.gather(*[
@@ -69,15 +69,15 @@ async def get_players():
     result = []
 
     for session, balance in zip(sessions, balances):
-        result.append(PlayerInfo(
-            username=session.player.username,
+        result.append(UserInfo(
+            username=session.user.username,
             wallet=WalletInfo(
-                address=session.player.wallet.classic_address,
-                public_key=session.player.wallet.public_key,
+                address=session.user.wallet.classic_address,
+                public_key=session.user.wallet.public_key,
                 balance=balance
             ),
             connected=session.is_connected(),
-            ipfs_images=session.player.get_all_images()
+            ipfs_images=session.user.get_all_images()
         ))
 
     return result

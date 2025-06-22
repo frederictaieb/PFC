@@ -1,9 +1,9 @@
 from fastapi import WebSocket
-from app.models.player import Player
+from app.models.user import User
 
-class PlayerSession:
-    def __init__(self, player: Player, websocket: WebSocket = None):
-        self.player = player
+class UserSession:
+    def __init__(self, user: User, websocket: WebSocket = None):
+        self.user = user
         self.websocket = websocket
 
     def is_connected(self) -> bool:

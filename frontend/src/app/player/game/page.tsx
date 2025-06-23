@@ -12,6 +12,8 @@ export default function GamePage() {
   const searchParams = useSearchParams();
   const usernameParam = searchParams.get("username");
 
+  const [countdown, setCountdown] = useState<string | null>(null);
+
   const [playerInfo, setPlayerInfo] = useState<null | {
     username: string;
     wallet: {
@@ -44,6 +46,26 @@ export default function GamePage() {
     init();
   }, [usernameParam]);
 
+  useEffect(() => {
+    if (playerInfo) {
+      const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/${playerInfo.username}`);
+      
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === "countdown" && ["1", "2", "3", "GO"].includes(data.value)) {
+            setCountdown(data.value);
+          }
+        } catch (err) {
+          console.error("Invalid JSON received:", event.data);
+        }
+      };
+      
+    }
+  }, [playerInfo]);
+
+  
   return (
     <div
       style={{
@@ -59,6 +81,7 @@ export default function GamePage() {
         <div style={{ marginBottom: "10px", textAlign: "center" }}>
           <div><strong>Utilisateur :</strong> {playerInfo.username}</div>
           <div><strong>Balance :</strong> {playerInfo.wallet.balance} XRP</div>
+          <div><strong>Countdown :</strong> {countdown}</div>
         </div>
       )}
       {error && (

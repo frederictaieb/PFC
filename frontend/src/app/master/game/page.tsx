@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { startRound } from '@/api/game/startRound'
+import { startRound } from '@/lib/api/game/startRound'
 
 export default function GamePage() {
     const [message, setMessage] = useState<{ type: string, value: string | number } | null>(null);

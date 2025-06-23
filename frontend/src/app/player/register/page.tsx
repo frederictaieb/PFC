@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const [clicked, setClicked] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [countdown, setCountdown] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   const socketRef = useRef<WebSocket | null>(null);
   const uuidRef = useRef<string>(uuidv4());
@@ -26,6 +27,7 @@ export default function RegisterPage() {
   }, []);
 
   useEffect(() => {
+
     let socket: WebSocket;
     if (!registered) {
       const anonId = uuidRef.current;
@@ -53,7 +55,14 @@ export default function RegisterPage() {
           if (data.type === "countdown" && ["1", "2", "3", "GO"].includes(data.value)) {
             setCountdown(data.value);
             if (data.value === "GO") {
-              setTimeout(() => router.push("/game"), 1000);
+              
+              setTimeout(
+                () => {
+                  localStorage.setItem("user", JSON.stringify(user));
+                  router.push("/player/game")
+                }, 
+                1000
+              );
             }
           }
         } catch (err) {
@@ -74,8 +83,11 @@ export default function RegisterPage() {
   const handleRegister = async () => {
     setClicked(true);
     const result = await registerPlayer(username);
-
-    if (result.success) {
+  
+    if (result.success && result.user) {
+      console.log("User registered successfully:", result.user);
+      setUser(result.user);
+      localStorage.setItem("user", JSON.stringify(result.user));
       setRegistered(true);
     } else {
       alert(result.error);

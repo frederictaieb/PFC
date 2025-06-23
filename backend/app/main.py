@@ -42,4 +42,4 @@ async def websocket_user(websocket: WebSocket, username: str):
     
 @app.websocket("/ws/anon/{uuid}")
 async def websocket_anon(websocket: WebSocket, uuid: str):
-    await websocket_manager(websocket, f"anon-{uuid}")
+    await websocket_manager(websocket, f"anon/{uuid}")

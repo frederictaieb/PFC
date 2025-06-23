@@ -7,6 +7,16 @@ export default function GamePage() {
     const [message, setMessage] = useState<{ type: string, value: string | number } | null>(null);
     const [showEmoji, setShowEmoji] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false); // 🔹 nouvel état
+    const [user, setUser] = useState<any>(null);
+
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          setUser(user); // ou setUsername(user.username)
+        }
+    }, []);
 
     useEffect(() => {
         const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/master`);

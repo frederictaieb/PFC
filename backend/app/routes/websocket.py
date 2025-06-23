@@ -20,7 +20,7 @@ async def websocket_manager(websocket: WebSocket, username: str):
             else:
                 logger.warning("Master session does not exist in user pool.")
 
-        elif username.startswith("anon-"):
+        elif username.startswith("anon/"):
             user_pool.add_anonymous(websocket)
             logger.info(f"Anonymous socket {websocket} added to user_pool.anonymous_sockets")
 
@@ -40,7 +40,7 @@ async def websocket_manager(websocket: WebSocket, username: str):
     except WebSocketDisconnect:
         logger.info(f"User {username} disconnected from WebSocket")
 
-        if username.startswith("anon-"):
+        if username.startswith("anon/"):
             user_pool.remove_anonymous(websocket)
             logger.info(f"Anonymous socket {websocket} removed from pool")
 

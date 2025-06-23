@@ -27,9 +27,26 @@ class RegisterPayload(BaseModel):
 @router.post("/register_user")
 async def register_user(payload: RegisterPayload):
     username = payload.username
-    await user_pool.create_user(username)
+    session = await user_pool.create_user(username)
     logger.info(f"User {username} created")
-    return {"message": "User registered", "user": username}
+    
+    # Create a proper UserInfo object
+    user_info = UserInfo(
+        username=session.user.username,
+        wallet=WalletInfo(
+            address=session.user.wallet.classic_address,
+            public_key=session.user.wallet.public_key,
+            balance=None  # We'll get the balance later when needed
+        ),
+        connected=session.is_connected(),
+        ipfs_images=session.user.get_all_images()
+    )
+    
+    return {
+        "success": True,
+        "user": user_info.dict(),
+        "message": "User registered"
+    }
 
 @router.get("/get_user", response_model=UserInfo)
 async def get_user(username: str):
@@ -39,7 +56,7 @@ async def get_user(username: str):
 
     address = session.user.wallet.classic_address
 
-    # Même si c’est un seul appel, on peut l’harmoniser :
+    # Même si c'est un seul appel, on peut l'harmoniser :
     [balance] = await asyncio.gather(get_xrp_balance(address))
 
     return UserInfo(

@@ -36,8 +36,7 @@ export default function GamePage() {
   }
 
   function hasWin(me: number, opponent: number): boolean {
-    if (me === opponent) return false;
-    return (me - opponent + 3) % 3 === 1;
+    return me === opponent || (me - opponent + 3) % 3 === 1;
   }
 
   useEffect(() => {

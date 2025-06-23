@@ -5,6 +5,7 @@ from app.routes.websocket import websocket_manager
 from app.utils.logger import logger_init
 import logging
 
+
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

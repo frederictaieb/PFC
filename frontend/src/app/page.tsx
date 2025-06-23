@@ -13,7 +13,8 @@ export default function Home() {
 
     useEffect(() => {
         const inputCode = code.join('');
-        setIsCorrect(inputCode === "2606");
+        const correctPin = process.env.NEXT_PUBLIC_PIN_CODE;
+        setIsCorrect(inputCode === correctPin);
     }, [code]);
 
     const handleChange = (index: number, value: string) => {

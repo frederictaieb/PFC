@@ -34,8 +34,8 @@ export default function GamePage() {
                 console.log("Résultat du joueur :", data.value);
                 // Tu peux afficher le geste, la victoire et l'image ici
                 // Exemple d'affichage temporaire (à adapter à ton UI) :
-                alert("coucou")
-                alert(`Geste : ${data.value.gesture}\nVictoire : ${data.value.hasWin ? "Oui" : "Non"}`);
+                
+                alert(data.value.username + " a " + (data.value.hasWin ? "gagné" : "perdu"))
             }
 
         };

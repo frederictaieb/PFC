@@ -1,10 +1,9 @@
 # app/services/emotion/emotion_score.py
 
 import random
-
-from app.services.emotion.fer_emotion import compute_emotion_score_fer
-from app.services.emotion.deepface_emotion import compute_emotion_score_deepface
-from app.services.emotion.blip_emotion import compute_emotion_score_blip
+from app.services.ai.fer_emotion import compute_emotion_score_fer
+from app.services.ai.deepface_emotion import compute_emotion_score_deepface
+from app.services.ai.blip_emotion import compute_emotion_score_blip
 
 def compute_emotion_score(image_path: str, method: str = "fer") -> float:
     """

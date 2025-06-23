@@ -1,17 +1,11 @@
 # app/services/emotion/blip_emotion.py
 # pip install transformers torchvision torch pillow
+from transformers import BlipProcessor, BlipForConditionalGeneration, pipeline
+from PIL import Image
 
-try:
-    from transformers import BlipProcessor, BlipForConditionalGeneration, pipeline
-    from PIL import Image
-
-    HF_AVAILABLE = True
-    blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-    blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
-    emotion_classifier = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base", top_k=None)
-
-except ImportError:
-    HF_AVAILABLE = False
+blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+emotion_classifier = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base", top_k=None)
 
 def generate_caption(image_path: str) -> str:
     if not HF_AVAILABLE:

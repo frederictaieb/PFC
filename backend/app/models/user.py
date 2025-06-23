@@ -12,7 +12,7 @@ from app.models.client import Client
 from app.services.xrp.wallet import create_wallet
 from app.services.ipfs.upload import upload_file
 from app.utils.logger import logger_init
-from app.services.emotion import compute_emotion_score
+from app.services.ai.emotion_score import compute_emotion_score
 
 # Initialiser le logger
 logger_init(level=logging.INFO)
@@ -31,7 +31,7 @@ class WalletInfo(BaseModel):
 class ImageData(BaseModel):
     round: int
     ipfs_cid: str
-    evi: float = Field(..., ge=0.0, le=1.0)  # Score émotionnel entre 0.0 et 1.0
+    evi: Optional[float] = None
 
 # ✅ Modèle utilisateur exportable (si nécessaire dans API ou front)
 class UserInfo(BaseModel):
@@ -61,21 +61,27 @@ class User(Client):
     def add_ipfs_image(self, image_path: str):
         # 1. Uploader l'image vers IPFS
         ipfs_url = os.getenv("IPFS_URL")
+        logger.info(f"Uploading image {image_path} to IPFS {ipfs_url}")
         ipfs_cid = upload_file(ipfs_url, image_path)
+        logger.info(f"upload_file returned: {ipfs_cid} (type: {type(ipfs_cid)})")
+        logger.info(f"IPFS CID: {ipfs_cid}")
 
         # 2. Score émotionnel simulé (à remplacer plus tard par une vraie IA)
-        evi = compute_emotion_score(image_path, method="fer")
+        evi = compute_emotion_score(image_path, method="deepface")
+        logger.info(f"Emotion score: {evi}")
 
         # 3. Round = nombre d’images existantes + 1
         round_num = len(self.ipfs_images) + 1
-
+        logger.info(f"Current round: {round_num}")
+        
         # 4. Créer l’objet ImageData
+        logger.info(f"Creating image data for round {round_num} with IPFS CID {ipfs_cid} and EVI {evi}")
         image_data = ImageData(round=round_num, ipfs_cid=ipfs_cid, evi=evi)
+        logger.info(f"Image data created: {image_data}")
 
         # 5. Ajouter à la liste
         self.ipfs_images.append(image_data)
-
-        logger.info(f"Image {image_path} uploaded to IPFS {ipfs_cid} (round {round_num}, evi {evi})")
+        logger.info(f"Image data added to user {self.username}")
 
     def get_last_image(self) -> Optional[ImageData]:
         if self.ipfs_images:

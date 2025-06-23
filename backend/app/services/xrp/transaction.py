@@ -1,62 +1,45 @@
 from xrpl.clients import JsonRpcClient
 from xrpl.models.transactions import Payment
-from xrpl.models.requests import AccountInfo
-from xrpl.transaction import (
-    safe_sign_and_autofill_transaction,
-    send_reliable_submission,
-)
+from xrpl.asyncio.transaction import autofill_and_sign, submit_and_wait
 from xrpl.wallet import Wallet
 from xrpl.utils import xrp_to_drops
-from xrpl.models.requests import AccountInfo
-from xrpl.models.exceptions import XRPLRequestFailureException
+from app.utils.logger import logger_init
 import logging
 
-JSON_RPC_URL = os.getenv("XRP_RPC_URL", "https://s.altnet.rippletest.net:51234/")
+logger_init(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def send_xrp(sender_wallet: Wallet, destination_address: str, amount_xrp: float) -> str:
-    """
-    Envoie des XRP d'un wallet vers une adresse.
-    
-    :param sender_wallet: Wallet XRPL (xrpl.wallet.Wallet)
-    :param destination_address: Adresse XRP du destinataire
-    :param amount_xrp: Montant en XRP (float)
-    :return: Hash de la transaction
-    """
+JSON_RPC_URL = "https://s.altnet.rippletest.net:51234"
+
+
+logger = logging.getLogger(__name__)
+
+
+
+async def send_xrp(sender_wallet: Wallet, destination_address: str, amount_xrp: float) -> str:
+    logger.info(f"Sending {amount_xrp} xrp from {sender_wallet.classic_address} to {destination_address}")
     client = JsonRpcClient(JSON_RPC_URL)
     try:
-        # Vérifie que l'adresse source est valide et a un compte actif
-        acct_info = AccountInfo(
-            account=sender_wallet.classic_address,
-            ledger_index="validated",
-            strict=True
-        )
-        response = client.request(acct_info)
-        if response.is_successful():
-            logger.info(f"Source Account {sender_wallet.classic_address} is valid")
-        else:
-            raise ValueError(f"Source Account {sender_wallet.classic_address} is not valid")
-
-        # Création de la transaction
         payment = Payment(
             account=sender_wallet.classic_address,
-            amount=xrp_to_drops(amount_xrp),  # conversion XRP → drops
             destination=destination_address,
+            amount=xrp_to_drops(amount_xrp),
         )
 
-        # Signature + remplissage automatique
-        signed_tx = safe_sign_and_autofill_transaction(payment, sender_wallet, client)
+        
+        signed_tx = await autofill_and_sign(payment, client, sender_wallet)
+        response = await submit_and_wait(signed_tx, client)
 
-        # Envoi et soumission
-        tx_response = send_reliable_submission(signed_tx, client)
-        tx_hash = signed_tx.get_hash()
-
-        logging.info(f"Transaction envoyée. Hash: {tx_hash}")
-        return tx_hash
-
-    except XRPLRequestFailureException as e:
-        logging.error(f"Erreur XRPL : {e}")
-        raise
+        tx_id = signed_tx.get_hash()
+        logger.info(f"Transaction sent: {tx_id}")
 
     except Exception as e:
-        logging.error(f"Erreur lors de l'envoi de XRP : {e}")
+        logger.error(f"Transaction failed: {e}")
         raise
+
+async def send_net_xrp(sender_wallet: Wallet, destination_address: str, amount_xrp: float) -> str:
+    if not isinstance(amount_xrp, Decimal):
+        amount_xrp = Decimal(str(amount_xrp))
+    fee = Decimal("0.000010")
+    net_xrp = amount_xrp - fee
+    send_xrp(sender_wallet, destination_address, float(net_xrp))

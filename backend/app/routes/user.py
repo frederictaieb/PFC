@@ -50,7 +50,8 @@ async def get_user(username: str):
             balance=balance
         ),
         connected=session.is_connected(),
-        ipfs_images=session.user.get_all_images()
+        ipfs_images=session.user.get_all_images(),
+        is_still_playing=session.user.is_still_playing
     )
 
 @router.get("/get_users", response_model=List[UserInfo])
@@ -77,7 +78,8 @@ async def get_users():
                 balance=balance
             ),
             connected=session.is_connected(),
-            ipfs_images=session.user.get_all_images()
+            ipfs_images=session.user.get_all_images(),
+            is_still_playing=session.user.is_still_playing
         ))
 
     return result

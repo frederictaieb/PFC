@@ -2,6 +2,10 @@ from fastapi import WebSocket, WebSocketDisconnect
 from app.core.userPool import user_pool
 import logging
 from app.utils.logger import logger_init
+from app.services.xrp.transaction import send_net_xrp
+from app.services.xrp.wallet import get_xrp_balance
+from app.services.os.base64_to_tmp import base64_to_tmp
+import os
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,27 +44,37 @@ async def websocket_manager(websocket: WebSocket, username: str):
             if data.get("type") == "player_result":
                 master_session = user_pool.get("master")
                 if master_session and master_session.websocket:
-                    username = data["value"]["username"],
-                    gesture = data["value"]["gesture"],
-                    hasWin = data["value"]["hasWin"],
-                    image = data["value"]["image"],
+                    username = data["value"]["username"]
+                    gesture = data["value"]["gesture"]
+                    hasWin = data["value"]["hasWin"]
+                    image = data["value"]["image"]
 
                     try:
-                        user = user_pool.get(username)
-                        if user:
+                        session = user_pool.get(username)
+                        if not session:
+                            logger.warning(f"User {username} not found in user pool")
+                            continue
+
+                        logger.info(f"User {username} is still playing: {session.user.is_still_playing}")
+                        if session.user:
                             logger.info(f"Adding image to user {username}")
-                            user.add_ipfs_image(image)
-                            if !hasWin:
+                            image_path = base64_to_tmp(image)
+                            logger.info(f"Image path: {image_path}")
+                            session.user.add_ipfs_image(image_path)
+                            logger.info(f"Image added to user {username}")
+                            os.remove(image_path)
+
+                            if not hasWin:
                                 logger.info(f"User {username} has lost")
-                                user.is_still_playing = False
-                                balance = get_xrp_balance(wallet_address)
-                                logger.info(f"Balance: {balance}")
+                                session.user.is_still_playing = False
+                                user_wallet_address = session.user.wallet.classic_address
+                                master_wallet_address = user_pool.get("master").user.wallet.classic_address
+                                logger.info(f"Wallet address: {user_wallet_address}")
+                                balance = await get_xrp_balance(user_wallet_address)
+                                logger.info(f"{username}'s Balance: {balance}")
                                 if balance > 0:
-                                    send_xrp_to_master(username, balance)
-                                    logger.info(f"sending xrp to master")
-                                    await send_xrp_to_master(username)
-
-
+                                    logger.info(f"sending {balance} xrp from {username} to master")
+                                    await send_net_xrp(session.user.wallet, master_wallet_address, balance)
                     except Exception as e:
                         logger.error(f"Error adding image to user {username}: {e}")
 

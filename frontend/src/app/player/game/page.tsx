@@ -13,6 +13,7 @@ export default function GamePage() {
   const usernameParam = searchParams.get("username");
 
   const [countdown, setCountdown] = useState<string | null>(null);
+  const [result, setResult] = useState<string | null>(null);
 
   const [playerInfo, setPlayerInfo] = useState<null | {
     username: string;
@@ -54,9 +55,13 @@ export default function GamePage() {
         try {
           const data = JSON.parse(event.data);
 
-          if (data.type === "countdown" && ["1", "2", "3", "GO"].includes(data.value)) {
+          if (data.type === "countdown" && ["1", "2", "3"].includes(data.value)) {
             setCountdown(data.value);
           }
+          if (data.type === "result") {
+            setResult(data.value);
+          }
+
         } catch (err) {
           console.error("Invalid JSON received:", event.data);
         }
@@ -81,7 +86,6 @@ export default function GamePage() {
         <div style={{ marginBottom: "10px", textAlign: "center" }}>
           <div><strong>Utilisateur :</strong> {playerInfo.username}</div>
           <div><strong>Balance :</strong> {playerInfo.wallet.balance} XRP</div>
-          <div><strong>Countdown :</strong> {countdown}</div>
         </div>
       )}
       {error && (
@@ -110,6 +114,8 @@ export default function GamePage() {
           border: "0.5px solid #ccc",
         }}
       />
+      <div><strong>Countdown :</strong> {countdown}</div>
+      <div><strong>Result :</strong> {result}</div>
     </div>
   );
 }

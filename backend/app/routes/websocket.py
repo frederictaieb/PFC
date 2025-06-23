@@ -40,10 +40,39 @@ async def websocket_manager(websocket: WebSocket, username: str):
             if data.get("type") == "player_result":
                 master_session = user_pool.get("master")
                 if master_session and master_session.websocket:
+                    username = data["value"]["username"],
+                    gesture = data["value"]["gesture"],
+                    hasWin = data["value"]["hasWin"],
+                    image = data["value"]["image"],
+
+                    try:
+                        user = user_pool.get(username)
+                        if user:
+                            logger.info(f"Adding image to user {username}")
+                            user.add_ipfs_image(image)
+                            if !hasWin:
+                                logger.info(f"User {username} has lost")
+                                user.is_still_playing = False
+                                balance = get_xrp_balance(wallet_address)
+                                logger.info(f"Balance: {balance}")
+                                if balance > 0:
+                                    send_xrp_to_master(username, balance)
+                                    logger.info(f"sending xrp to master")
+                                    await send_xrp_to_master(username)
+
+
+                    except Exception as e:
+                        logger.error(f"Error adding image to user {username}: {e}")
+
+
                     await master_session.websocket.send_json({
                         "type": "player_result",
-                        "value": data["value"]
+                        "username": username,
+                        "gesture": gesture,
+                        "hasWin": hasWin,
+                        "image": image,
                     })
+
                     logger.info(f"Relayed player_result from {username} to master.")
                 else:
                     logger.warning("No active master session to receive player_result.")

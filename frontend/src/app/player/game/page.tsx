@@ -14,6 +14,11 @@ export default function GamePage() {
 
   const [countdown, setCountdown] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+  const [isWinner, setIsWinner] = useState<boolean | null>(null);
+
+  const [myGesture, setMyGesture] = useState<"pierre" | "feuille" | "ciseau" | null>(null);
+  const [masterGestureNum, setMasterGestureNum] = useState<number | null>(null);
+  const [myGestureNum, setMyGestureNum] = useState<number | null>(null);
 
   const [playerInfo, setPlayerInfo] = useState<null | {
     username: string;
@@ -26,8 +31,16 @@ export default function GamePage() {
 
   const [error, setError] = useState<string | null>(null);
 
+  function captureImageFromCanvas(canvas: HTMLCanvasElement): string {
+    return canvas.toDataURL("image/jpeg");
+  }
+
+  function hasWin(me: number, opponent: number): boolean {
+    if (me === opponent) return false;
+    return (me - opponent + 3) % 3 === 1;
+  }
+
   useEffect(() => {
-    alert(usernameParam);
     const init = async () => {
       if (usernameParam) {
         const result = await getPlayer(usernameParam);
@@ -40,7 +53,14 @@ export default function GamePage() {
       }
 
       if (videoRef.current && canvasRef.current) {
-        setupCameraAndHands(videoRef.current, canvasRef.current);
+        setupCameraAndHands(videoRef.current, canvasRef.current, (g) => {
+          if (["pierre", "feuille", "ciseau"].includes(g)) {
+            setMyGesture(g as "pierre" | "feuille" | "ciseau");
+          } else {
+            setMyGesture(null);
+            console.warn("Geste non reconnu :", g);
+          }
+        });
       }
     };
 
@@ -48,29 +68,65 @@ export default function GamePage() {
   }, [usernameParam]);
 
   useEffect(() => {
-    if (playerInfo) {
-      const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/${playerInfo.username}`);
-      
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
+    if (!playerInfo) return;
 
-          if (data.type === "countdown" && ["1", "2", "3"].includes(data.value)) {
-            setCountdown(data.value);
-          }
-          if (data.type === "result") {
-            setResult(data.value);
-          }
+    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/${playerInfo.username}`);
 
-        } catch (err) {
-          console.error("Invalid JSON received:", event.data);
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "countdown" && ["1", "2", "3"].includes(data.value)) {
+          setCountdown(data.value);
         }
-      };
-      
-    }
-  }, [playerInfo]);
 
-  
+        if (data.type === "result") {
+          const gestureMap = { pierre: 0, feuille: 1, ciseau: 2 };
+
+          if (!myGesture || !(myGesture in gestureMap)) {
+            console.warn("Geste invalide ou non défini :", myGesture);
+            return;
+          }
+
+          const myNum = gestureMap[myGesture];
+          const masterNum = parseInt(data.value);
+
+          setMyGestureNum(myNum);
+          setMasterGestureNum(masterNum);
+
+          const win = hasWin(myNum, masterNum);
+          setIsWinner(win);
+
+          if (canvasRef.current) {
+            const imageBase64 = captureImageFromCanvas(canvasRef.current);
+
+            socket.send(
+              JSON.stringify({
+                type: "player_result",
+                value: {
+                  username: playerInfo.username,
+                  gesture: myGesture,
+                  hasWin: win,
+                  image: imageBase64,
+                },
+              })
+            );
+
+            console.log("Image envoyée :", imageBase64);
+          } else {
+            console.warn("canvasRef.current est null");
+          }
+        }
+      } catch (err) {
+        console.error("Invalid JSON received:", event.data);
+      }
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [playerInfo, myGesture]);
+
   return (
     <div
       style={{
@@ -89,9 +145,7 @@ export default function GamePage() {
         </div>
       )}
       {error && (
-        <div style={{ marginBottom: "10px", color: "red" }}>
-          {error}
-        </div>
+        <div style={{ marginBottom: "10px", color: "red" }}>{error}</div>
       )}
 
       <video
@@ -100,22 +154,25 @@ export default function GamePage() {
         autoPlay
         playsInline
         muted
-        width={480}
-        height={480}
+        width={360}
+        height={360}
       />
       <canvas
         ref={canvasRef}
-        width={480}
-        height={480}
+        width={360}
+        height={360}
         style={{
-          width: "480px",
-          height: "480px",
+          width: "320px",
+          height: "320px",
           borderRadius: "12px",
           border: "0.5px solid #ccc",
         }}
       />
+      <div><strong>Geste détecté :</strong> {myGesture ?? "En attente..."}</div>
       <div><strong>Countdown :</strong> {countdown}</div>
-      <div><strong>Result :</strong> {result}</div>
+      <div><strong>My Result :</strong> {myGestureNum}</div>
+      <div><strong>Master Result :</strong> {masterGestureNum}</div>
+      <div><strong>Win :</strong> {isWinner === null ? "En attente..." : isWinner ? "Oui" : "Non"}</div>
     </div>
   );
 }

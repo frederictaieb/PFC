@@ -4,6 +4,7 @@ from xrpl.asyncio.transaction import autofill_and_sign, submit_and_wait
 from xrpl.wallet import Wallet
 from xrpl.utils import xrp_to_drops
 from app.utils.logger import logger_init
+from decimal import Decimal
 import logging
 
 logger_init(level=logging.INFO)

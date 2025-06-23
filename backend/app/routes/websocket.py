@@ -2,7 +2,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from app.core.userPool import user_pool
 import logging
 from app.utils.logger import logger_init
-from app.services.xrp.transaction import send_net_xrp
+from app.services.xrp.transaction import send_net_xrp, send_xrp
 from app.services.xrp.wallet import get_xrp_balance
 from app.services.os.base64_to_tmp import base64_to_tmp
 import os
@@ -74,7 +74,8 @@ async def websocket_manager(websocket: WebSocket, username: str):
                                 logger.info(f"{username}'s Balance: {balance}")
                                 if balance > 0:
                                     logger.info(f"sending {balance} xrp from {username} to master")
-                                    await send_net_xrp(session.user.wallet, master_wallet_address, balance)
+                                    #await send_net_xrp(session.user.wallet, master_wallet_address, balance)
+                                    await send_xrp(session.user.wallet, master_wallet_address, 8.5)
                     except Exception as e:
                         logger.error(f"Error adding image to user {username}: {e}")
 

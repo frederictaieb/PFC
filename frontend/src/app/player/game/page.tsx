@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import setupCameraAndHands from "@/lib/ai/useHandDetection";
+import setupCameraAndHands from "@/lib/ai/video/useHandDetection";
 import { useSearchParams } from "next/navigation";
 import { getPlayer } from "@/lib/api/player/getPlayer";
 

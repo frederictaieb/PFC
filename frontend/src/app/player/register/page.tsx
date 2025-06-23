@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { checkGameStatus } from "@/lib/api/game/checkGameStatus";
-import { registerPlayer } from "@/lib/api/player";
+import { registerPlayer } from "@/lib/api/player/registerPlayer";
 import { v4 as uuidv4 } from "uuid";
 
 export default function RegisterPage() {

@@ -20,7 +20,7 @@ async def websocket_manager(websocket: WebSocket, username: str):
             else:
                 logger.warning("Master session does not exist in user pool.")
 
-        elif username.startswith("anon-"):
+        elif username.startswith("anon/"):
             user_pool.add_anonymous(websocket)
             logger.info(f"Anonymous socket {websocket} added to user_pool.anonymous_sockets")
 
@@ -35,7 +35,21 @@ async def websocket_manager(websocket: WebSocket, username: str):
         while True:
             data = await websocket.receive_json()
             logger.info(f"Received data: {data} from {username}")
-            await websocket.send_text(f"{username}: {data}")
+
+            # Si un joueur envoie un résultat
+            if data.get("type") == "player_result":
+                master_session = user_pool.get("master")
+                if master_session and master_session.websocket:
+                    await master_session.websocket.send_json({
+                        "type": "player_result",
+                        "value": data["value"]
+                    })
+                    logger.info(f"Relayed player_result from {username} to master.")
+                else:
+                    logger.warning("No active master session to receive player_result.")
+            else:
+                # Echo pour debug
+                await websocket.send_text(f"{username}: {data}")
 
     except WebSocketDisconnect:
         logger.info(f"User {username} disconnected from WebSocket")

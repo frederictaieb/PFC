@@ -30,7 +30,14 @@ export default function GamePage() {
                         setIsPlaying(false);
                     }, 3000);
                 }, 10);
+            } else if (data.type === "player_result") {
+                console.log("Résultat du joueur :", data.value);
+                // Tu peux afficher le geste, la victoire et l'image ici
+                // Exemple d'affichage temporaire (à adapter à ton UI) :
+                alert("coucou")
+                alert(`Geste : ${data.value.gesture}\nVictoire : ${data.value.hasWin ? "Oui" : "Non"}`);
             }
+
         };
     }, []);
 

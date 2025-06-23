@@ -23,22 +23,29 @@ export default function drawLandmarksAndGesture(
 
       const gesture = detectGesture(landmarks);
       gestureDetected = gesture;
-
-      const emojiMap: Record<string, string> = {
-        pierre: "🪨",
-        feuille: "🍃",
-        ciseau: "✂️",
-        inconnu: "❓",
-      };
-      const emoji = emojiMap[gesture];
-
-      ctx.font = "64px serif";
-      ctx.fillStyle = "#000000";
-      ctx.fillText(emoji, 20, 60);
-
     }
   }
 
-  ctx.restore();
+  ctx.restore(); // ← orientation normale
+
+  if (gestureDetected) {
+    const emojiMap: Record<string, string> = {
+      pierre: "🪨",
+      feuille: "🍃",
+      ciseau: "✂️",
+      inconnu: "❓",
+    };
+
+    const emoji = emojiMap[gestureDetected];
+    const padding = 20;
+
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#000000";
+
+    // Emoji en haut à droite
+    ctx.font = "64px serif";
+    ctx.fillText(emoji, canvas.width - padding, 60);
+  }
+
   return gestureDetected;
 }

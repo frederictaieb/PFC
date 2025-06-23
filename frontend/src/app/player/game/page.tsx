@@ -1,17 +1,48 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import setupCameraAndHands from "@/lib/ai/useHandDetection";
+import { useSearchParams } from "next/navigation";
+import { getPlayer } from "@/lib/api/player/getPlayer";
 
 export default function GamePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const searchParams = useSearchParams();
+  const usernameParam = searchParams.get("username");
+
+  const [playerInfo, setPlayerInfo] = useState<null | {
+    username: string;
+    wallet: {
+      address: string;
+      public_key: string;
+      balance: string;
+    };
+  }>(null);
+
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    if (videoRef.current && canvasRef.current) {
-      setupCameraAndHands(videoRef.current, canvasRef.current);
-    }
-  }, []);
+    alert(usernameParam);
+    const init = async () => {
+      if (usernameParam) {
+        const result = await getPlayer(usernameParam);
+        if (result.success) {
+          setPlayerInfo(result.data);
+        } else {
+          setError(result.error);
+          console.error(result.error);
+        }
+      }
+
+      if (videoRef.current && canvasRef.current) {
+        setupCameraAndHands(videoRef.current, canvasRef.current);
+      }
+    };
+
+    init();
+  }, [usernameParam]);
 
   return (
     <div
@@ -19,10 +50,23 @@ export default function GamePage() {
         width: "100vw",
         height: "100vh",
         display: "flex",
-        justifyContent: "center",
+        flexDirection: "column",
         alignItems: "center",
+        paddingTop: "20px",
       }}
     >
+      {playerInfo && (
+        <div style={{ marginBottom: "10px", textAlign: "center" }}>
+          <div><strong>Utilisateur :</strong> {playerInfo.username}</div>
+          <div><strong>Balance :</strong> {playerInfo.wallet.balance} XRP</div>
+        </div>
+      )}
+      {error && (
+        <div style={{ marginBottom: "10px", color: "red" }}>
+          {error}
+        </div>
+      )}
+
       <video
         ref={videoRef}
         style={{ display: "none" }}

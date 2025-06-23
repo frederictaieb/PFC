@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { checkGameStatus } from "@/api/game/checkGameStatus";
-import { registerPlayer } from "@/api/player";
+import { checkGameStatus } from "@/lib/api/game/checkGameStatus";
+import { registerPlayer } from "@/lib/api/player";
 import { v4 as uuidv4 } from "uuid";
 
 export default function RegisterPage() {
@@ -46,14 +46,15 @@ export default function RegisterPage() {
         try {
           const data = JSON.parse(event.data);
 
-          if (data.type === "start_game") {
-            router.push("/game");
-          }
+          //if (data.type === "start_game") {
+          //  router.push("/game");
+          //}
 
           if (data.type === "countdown" && ["1", "2", "3", "GO"].includes(data.value)) {
             setCountdown(data.value);
             if (data.value === "GO") {
-              setTimeout(() => router.push("/game"), 1000);
+              setTimeout(() => router.push(`/player/game?username=${encodeURIComponent(username)}`), 1000);
+              
             }
           }
         } catch (err) {

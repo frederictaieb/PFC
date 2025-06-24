@@ -9,12 +9,10 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
-      <body>
-        <LeaderboardProvider>
-          {children}
-        </LeaderboardProvider>
-      </body>
-    </html>
+    <div className="results-layout">
+      <LeaderboardProvider>
+        {children}
+      </LeaderboardProvider>
+    </div>
   )
 }

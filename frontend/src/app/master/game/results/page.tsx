@@ -7,13 +7,11 @@ import { useLeaderboardUpdater } from "@/app/hooks/useLeaderboardUpdater";
 import LeaderboardTrombinoscope from "@/app/components/LeaderboardTrombinoscope";
 
 
-
 export default function Home() {
 
 const [roundNumber, setRoundNumber] = useState(0);
 const router = useRouter();
-
-useLeaderboardUpdater();
+const { state } = useLeaderboard();
 
 useEffect(() => {
   fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round`)
@@ -22,6 +20,24 @@ useEffect(() => {
 }, []);
 
 const handleClose = () => {
+  
+  const losers = state.leaderboard.filter((player) => player.result === -1);
+  console.log("Losers: ", losers);
+  
+  for (const loser of losers) {
+    try {
+      fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/user/eliminate_user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: loser.username }),
+      });
+      console.log(`✅ Eliminated: ${loser.username}`);
+    } catch (error) {
+      console.error(`❌ Failed to eliminate ${loser.username}`, error);
+    }
+  }
   router.push('/master/game');
 }
   

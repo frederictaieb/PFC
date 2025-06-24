@@ -37,49 +37,38 @@ async def get_user(username: str):
     if not session:
         raise HTTPException(status_code=404, detail="User not found")
 
-    address = session.user.wallet.classic_address
+    #address = session.user.wallet.classic_address
 
     # Même si c’est un seul appel, on peut l’harmoniser :
-    [balance] = await asyncio.gather(get_xrp_balance(address))
+    #[balance] = await asyncio.gather(get_xrp_balance(address))
 
-    return UserInfo(
-        username=session.user.username,
-        wallet=WalletInfo(
-            address=address,
-            public_key=session.user.wallet.public_key,
-            balance=balance
-        ),
-        connected=session.is_connected(),
-        ipfs_images=session.user.get_all_images(),
-        is_still_playing=session.user.is_still_playing
-    )
+    return await session.user.to_user_info()
 
 @router.get("/get_users", response_model=List[UserInfo])
 async def get_users():
     sessions = list(user_pool.sessions.values())
 
-    # Étape 1 : préparer les adresses
-    addresses = [s.user.wallet.classic_address for s in sessions]
-
-    # Étape 2 : récupérer toutes les balances en parallèle
-    balances = await asyncio.gather(*[
-        get_xrp_balance(address) for address in addresses
+    # ✅ Utilise gather pour appeler to_user_info() en parallèle
+    user_infos = await asyncio.gather(*[
+        session.user.to_user_info() for session in sessions
     ])
 
+    return user_infos
+    #sessions = list(user_pool.sessions.values())
+
+    # Étape 1 : préparer les adresses
+    #addresses = [s.user.wallet.classic_address for s in sessions]
+
+    # Étape 2 : récupérer toutes les balances en parallèle
+    #balances = await asyncio.gather(*[
+    #    get_xrp_balance(address) for address in addresses
+    #])
+
     # Étape 3 : construire la réponse
-    result = []
+    #result = []
 
-    for session, balance in zip(sessions, balances):
-        result.append(UserInfo(
-            username=session.user.username,
-            wallet=WalletInfo(
-                address=session.user.wallet.classic_address,
-                public_key=session.user.wallet.public_key,
-                balance=balance
-            ),
-            connected=session.is_connected(),
-            ipfs_images=session.user.get_all_images(),
-            is_still_playing=session.user.is_still_playing
-        ))
+    #for session in (sessions):
+    #    result.append(
+    #        await session.user.to_user_info())
 
-    return result
+    #return result

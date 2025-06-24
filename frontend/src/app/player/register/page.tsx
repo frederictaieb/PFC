@@ -25,52 +25,63 @@ export default function RegisterPage() {
     fetchStatus();
   }, []);
 
+  // Socket anonyme (avant enregistrement)
   useEffect(() => {
-    let socket: WebSocket;
-    if (!registered) {
-      const anonId = uuidRef.current;
-      socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/anon/${anonId}`);
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === "countdown") {
-            setGameStarted(true);
-          }
-        } catch (err) {
-          console.error("Invalid JSON received:", event.data);
-        }
-      };
-    } else {
-      socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/${username}`);
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
+    if (registered) return;
 
-          //if (data.type === "start_game") {
-          //  router.push("/game");
-          //}
-
-          if (data.type === "countdown" && ["1", "2", "3", "GO"].includes(data.value)) {
-            setCountdown(data.value);
-            if (data.value === "GO") {
-              setTimeout(() => router.push(`/player/game?username=${encodeURIComponent(username)}`), 1000);
-              
-            }
-          }
-        } catch (err) {
-          console.error("Invalid JSON received:", event.data);
-        }
-      };
-    }
+    const anonId = uuidRef.current;
+    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/anon/${anonId}`);
 
     socketRef.current = socket;
 
-    socket.onopen = () => console.log("WebSocket connected");
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "countdown") {
+          setGameStarted(true);
+        }
+      } catch (err) {
+        console.error("Invalid JSON received:", event.data);
+      }
+    };
+
+    socket.onopen = () => console.log("WebSocket connected (anon)");
     socket.onerror = (e) => console.error("WebSocket error", e);
-    socket.onclose = () => console.log("WebSocket disconnected");
+    socket.onclose = () => console.log("WebSocket disconnected (anon)");
 
     return () => socket.close();
-  }, [registered, username, router]);
+  }, [registered]);
+
+  // Socket joueur (après enregistrement)
+  useEffect(() => {
+    if (!registered || !username) return;
+
+    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/${username}`);
+    socketRef.current = socket;
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "countdown" && ["1", "2", "3", "GO"].includes(data.value)) {
+          setCountdown(data.value);
+          if (data.value === "GO") {
+            setTimeout(() => {
+              router.push(`/player/game?username=${encodeURIComponent(username)}`);
+            }, 1000);
+          }
+        }
+      } catch (err) {
+        console.error("Invalid JSON received:", event.data);
+      }
+    };
+
+    socket.onopen = () => console.log("WebSocket connected (user)");
+    socket.onerror = (e) => console.error("WebSocket error", e);
+    socket.onclose = () => console.log("WebSocket disconnected (user)");
+
+    return () => socket.close();
+  }, [registered]);
 
   const handleRegister = async () => {
     setClicked(true);

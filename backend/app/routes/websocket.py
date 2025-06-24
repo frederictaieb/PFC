@@ -42,12 +42,33 @@ async def websocket_manager(websocket: WebSocket, username: str):
 
             # Si un joueur envoie un résultat
             if data.get("type") == "player_result":
+
+                #username: playerInfo.username,
+                #gesture: myGesture,
+                #result: result,
+                #round: roundNumber,
+                #hasWin: win,
+                #image: imageBase64,
+
                 master_session = user_pool.get("master")
                 if master_session and master_session.websocket:
                     username = data["value"]["username"]
+                    logger.info(f"Username: {username}")
+
                     gesture = data["value"]["gesture"]
+                    logger.info(f"Gesture: {gesture}")
+
+                    round_number = data["value"]["round"]
+                    logger.info(f"Round number: {round_number}")
+
                     hasWin = data["value"]["hasWin"]
+                    logger.info(f"Has win: {hasWin}")
+
+                    result = data["value"]["result"]
+                    logger.info(f"Result: {result}")
+                    
                     image = data["value"]["image"]
+                    logger.info(f"Image: {image}")
 
                     try:
                         session = user_pool.get(username)
@@ -57,6 +78,11 @@ async def websocket_manager(websocket: WebSocket, username: str):
 
                         logger.info(f"User {username} is still playing: {session.user.is_still_playing}")
                         if session.user:
+                            logger.info(f"Updating last result and round for user {username}")
+                            session.user.last_result = result
+                            logger.info(f"Last result: {session.user.last_result}") 
+                            session.user.last_round = round_number
+                            logger.info(f"Last round: {session.user.last_round}")
                             logger.info(f"Adding image to user {username}")
                             image_path = base64_to_tmp(image)
                             logger.info(f"Image path: {image_path}")
@@ -84,6 +110,8 @@ async def websocket_manager(websocket: WebSocket, username: str):
                         "type": "player_result",
                         "username": username,
                         "gesture": gesture,
+                        "result": result,
+                        "round": round_number,
                         "hasWin": hasWin,
                         "image": image,
                     })

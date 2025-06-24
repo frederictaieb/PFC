@@ -13,6 +13,8 @@ from app.services.xrp.wallet import create_wallet
 from app.services.ipfs.upload import upload_file
 from app.utils.logger import logger_init
 from app.services.ai.emotion_score import compute_emotion_score
+from app.services.xrp.wallet import get_xrp_balance
+
 
 # Initialiser le logger
 logger_init(level=logging.INFO)
@@ -39,6 +41,8 @@ class UserInfo(BaseModel):
     wallet: WalletInfo
     connected: bool
     ipfs_images: List[ImageData]
+    last_result: Optional[int] = None  # ✅ maintenant optionnel
+    last_round: Optional[int] = None   # ✅ maintenant optionnel
     is_still_playing: bool
 
 # ✅ Classe User principale
@@ -48,7 +52,12 @@ class User(Client):
         self.wallet = wallet
         self.ipfs_images: List[ImageData] = ipfs_images or []
         self.is_still_playing: bool = True  # 🎯 ajouté par défaut
+        self.last_result: int = 0
+        self.last_round: int = 0
         logger.info(f"User {self.username} created with wallet {self.wallet.address}")
+        logger.info(f"Last result: {self.last_result}")
+        logger.info(f"Last round: {self.last_round}")
+        logger.info(f"Is still playing: {self.is_still_playing}")
 
     @classmethod
     async def create(cls, username: str):
@@ -72,6 +81,7 @@ class User(Client):
 
         # 3. Round = nombre d’images existantes + 1
         round_num = len(self.ipfs_images) + 1
+        
         logger.info(f"Current round: {round_num}")
         
         # 4. Créer l’objet ImageData
@@ -100,4 +110,20 @@ class User(Client):
             f"wallet={self.wallet.address}, "
             f"images={len(self.ipfs_images)}, "
             f"isStillPlaying={self.is_still_playing})>"
+        )
+
+    async def to_user_info(self) -> UserInfo:
+        balance = await get_xrp_balance(self.wallet.address)
+        return UserInfo(
+            username=self.username,
+            wallet=WalletInfo(
+                address=self.wallet.address,
+                public_key=self.wallet.public_key,
+                balance=balance
+            ),
+            connected=True,
+            ipfs_images=self.ipfs_images,
+            last_result=self.last_result,
+            last_round=self.last_round,
+            is_still_playing=self.is_still_playing,
         )

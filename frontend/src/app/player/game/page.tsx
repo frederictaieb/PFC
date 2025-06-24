@@ -13,8 +13,9 @@ export default function GamePage() {
   const usernameParam = searchParams.get("username");
 
   const [countdown, setCountdown] = useState<string | null>(null);
-  const [result, setResult] = useState<string | null>(null);
+  const [result, setResult] = useState(0)
   const [isWinner, setIsWinner] = useState<boolean | null>(null);
+  const [roundNumber, setRoundNumber] = useState(0);
 
   const [myGesture, setMyGesture] = useState<"pierre" | "feuille" | "ciseau" | null>(null);
   const [masterGestureNum, setMasterGestureNum] = useState<number | null>(null);
@@ -35,11 +36,29 @@ export default function GamePage() {
     return canvas.toDataURL("image/jpeg");
   }
 
+  function computeResult(me: number, opponent: number): number {
+    if (me === opponent) return 0; // égalité
+    if ((me - opponent + 3) % 3 === 1) return 1; // victoire
+    return -1; // défaite
+  }
+
   function hasWin(me: number, opponent: number): boolean {
-    return me === opponent || (me - opponent + 3) % 3 === 1;
+    if (computeResult(me, opponent) === 1) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   useEffect(() => {
+
+    const fetchRound = async () => {
+      fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round`)
+      .then(res => res.json())
+      .then(data => setRoundNumber(data.round));
+      console.log("Round :", roundNumber);
+    }
+
     const init = async () => {
       if (usernameParam) {
         const result = await getPlayer(usernameParam);
@@ -62,8 +81,8 @@ export default function GamePage() {
         });
       }
     };
-
     init();
+    fetchRound();
   }, [usernameParam]);
 
   useEffect(() => {
@@ -76,6 +95,7 @@ export default function GamePage() {
         const data = JSON.parse(event.data);
 
         if (data.type === "countdown" && ["1", "2", "3"].includes(data.value)) {
+          console.log("Countdown :", data.value);
           setCountdown(data.value);
         }
 
@@ -93,6 +113,7 @@ export default function GamePage() {
           setMyGestureNum(myNum);
           setMasterGestureNum(masterNum);
 
+          setResult(computeResult(myNum, masterNum));
           const win = hasWin(myNum, masterNum);
           setIsWinner(win);
 
@@ -105,6 +126,8 @@ export default function GamePage() {
                 value: {
                   username: playerInfo.username,
                   gesture: myGesture,
+                  result: result,
+                  round: roundNumber,
                   hasWin: win,
                   image: imageBase64,
                 },

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useLeaderboard, LeaderboardEntry } from "@/app/context/LeaderBoardContext";
 
-const IPFS_GATEWAY = "http://163.172.162.144:8080/ipfs/";
+const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_URL;
+
 const ipfsToUrl = (cid: string) => `${IPFS_GATEWAY}${cid}`;
 
 const XRP_LOGO_URL = "/xrp-logo.svg";

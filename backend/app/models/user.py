@@ -72,7 +72,11 @@ class User(Client):
         return cls(username, wallet)
 
     def get_wallet_address(self) -> str:
-        return self.wallet.address
+        return self.wallet.classic_address
+
+    async def get_balance(self) -> float:
+        balance = await get_xrp_balance(self.wallet.address)
+        return balance
 
     def add_ipfs_image(self, image_path: str):
         # 1. Uploader l'image vers IPFS

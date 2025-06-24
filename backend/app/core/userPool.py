@@ -2,6 +2,8 @@ from fastapi import WebSocket
 from app.core.userSession import UserSession
 from app.models.user import User
 from app.utils.logger import logger_init
+from app.services.xrp.wallet import get_xrp_balance
+from app.services.xrp.transaction import send_xrp
 import logging
 
 logger_init(level=logging.INFO)
@@ -52,6 +54,12 @@ class UserPool:
     def get_master(self) -> UserSession | None:
         return self.sessions.get("master")
     
+    async def get_master_balance(self) -> float:
+        session = self.sessions.get("master")
+        if session is None or session.user is None:
+            raise ValueError("Master session not found or not initialized")
+        return await session.user.get_balance()
+    
     def eliminate_user(self, username: str):
         if username in self.sessions:
             session = self.sessions.get(username)
@@ -62,5 +70,18 @@ class UserPool:
                 logger.warning(f"User {username} is not playing")
         else:
             logger.warning(f"User {username} not found")
+
+    async def send_xrp_to_winner(self, winner: str, amount: float):
+        session_winner = self.sessions.get(winner)
+        if session_winner is None or session_winner.user is None:
+            raise ValueError("Winner session not found or not initialized")
+        session_master = self.sessions.get("master")
+        if session_master is None or session_master.user is None:
+            raise ValueError("Master session not found or not initialized")
+
+        await send_xrp(
+            session_master.user.wallet, 
+            session_winner.user.wallet.address, 
+            amount)
 
 user_pool = UserPool()

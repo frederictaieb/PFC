@@ -92,7 +92,7 @@ async def websocket_manager(websocket: WebSocket, username: str):
 
                             if not hasWin:
                                 logger.info(f"User {username} has lost")
-                                session.user.is_still_playing = False
+                                #session.user.is_still_playing = False
                                 user_wallet_address = session.user.wallet.classic_address
                                 master_wallet_address = user_pool.get("master").user.wallet.classic_address
                                 logger.info(f"Wallet address: {user_wallet_address}")

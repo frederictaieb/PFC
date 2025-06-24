@@ -79,14 +79,20 @@ async def get_users():
 async def to_results():
     results: List[LeaderboardEntry] = []
 
-    # ✅ Itération sur toutes les sessions (chaque session contient un User)
     for session in user_pool.sessions.values():
+        # 🎯 On ignore "master"
+        if session.user.username == "master":
+            continue
+
+        # 🎯 On ignore ceux qui ne jouent plus
+        if not session.user.is_still_playing:
+            continue
+
         user_info: UserInfo = await session.user.to_user_info()
 
         last_round = user_info.last_round if user_info.last_round is not None else -1
         last_result = user_info.last_result if user_info.last_result is not None else 0
 
-        # ✅ Trouver la dernière image correspondant au dernier round
         last_image = next(
             (img for img in reversed(user_info.ipfs_images) if img.round == last_round),
             None

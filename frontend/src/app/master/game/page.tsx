@@ -45,11 +45,15 @@ export default function GamePage() {
                     }, 3000);
                 }, 10);
                 setHasPlayed(true);
+            } else if (data.type === "player_result" && data.value) {
+                console.log("Résultat du joueur :", data.value.username);
+                console.log("Geste du joueur :", data.value.gesture);
+                console.log("Résultat du joueur :", data.value.result);
+                console.log("Round :", data.value.round);
+                console.log("Victoire :", data.value.hasWin);
+                console.log("Image :", data.value.image);
             } else if (data.type === "player_result") {
-                console.log("Résultat du joueur :", data.value);
-                // Tu peux afficher le geste, la victoire et l'image ici
-                // Exemple d'affichage temporaire (à adapter à ton UI) :
-                //alert(data.value.username + " a " + (data.value.hasWin ? "gagné" : "perdu"))
+                console.warn("Message player_result mal formé :", data);
             }
 
         };

@@ -108,12 +108,14 @@ async def websocket_manager(websocket: WebSocket, username: str):
 
                     await master_session.websocket.send_json({
                         "type": "player_result",
-                        "username": username,
-                        "gesture": gesture,
-                        "result": result,
-                        "round": round_number,
-                        "hasWin": hasWin,
-                        "image": image,
+                        "value": {
+                            "username": username,
+                            "gesture": gesture,
+                            "result": result,
+                            "round": round_number,
+                            "hasWin": hasWin,
+                            "image": image,
+                        }
                     })
 
                     logger.info(f"Relayed player_result from {username} to master.")

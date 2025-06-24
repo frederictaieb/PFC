@@ -3,6 +3,7 @@ from app.models.user import User
 from app.core.userPool import user_pool
 from app.services.xrp.wallet import get_xrp_balance
 from typing import List
+from app.models.user import LeaderboardEntry
 
 import asyncio
 
@@ -72,3 +73,34 @@ async def get_users():
     #        await session.user.to_user_info())
 
     #return result
+
+
+@router.get("/to_results", response_model=List[LeaderboardEntry])
+async def to_results():
+    results: List[LeaderboardEntry] = []
+
+    # ✅ Itération sur toutes les sessions (chaque session contient un User)
+    for session in user_pool.sessions.values():
+        user_info: UserInfo = await session.user.to_user_info()
+
+        last_round = user_info.last_round if user_info.last_round is not None else -1
+        last_result = user_info.last_result if user_info.last_result is not None else 0
+
+        # ✅ Trouver la dernière image correspondant au dernier round
+        last_image = next(
+            (img for img in reversed(user_info.ipfs_images) if img.round == last_round),
+            None
+        )
+
+        last_evi = float(last_image.evi) if last_image and last_image.evi is not None else 0.0
+        last_photo = last_image.ipfs_cid if last_image else ""
+
+        results.append(LeaderboardEntry(
+            username=user_info.username,
+            result=last_result,
+            last_evi=last_evi,
+            last_photo=last_photo,
+            balance=float(user_info.wallet.balance or 0),
+        ))
+
+    return results

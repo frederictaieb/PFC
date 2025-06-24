@@ -35,6 +35,13 @@ class ImageData(BaseModel):
     ipfs_cid: str
     evi: Optional[float] = None
 
+class LeaderboardEntry(BaseModel):
+    username: str
+    result: int
+    last_evi: float
+    last_photo: str
+    balance: float
+
 # ✅ Modèle utilisateur exportable (si nécessaire dans API ou front)
 class UserInfo(BaseModel):
     username: str

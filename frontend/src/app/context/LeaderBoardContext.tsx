@@ -39,58 +39,27 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
 
   // 🔁 Injection de données de test pour le développement UI
   useEffect(() => {
-    const fakeData: LeaderboardEntry[] = [
-      {
-        username: "Alice",
-        result: 1,
-        last_evi: 0.0,
-        last_photo: "bafybeibfaakepic1",
-        balance: 300,
-      },
-      {
-        username: "Bob",
-        result: 1,
-        last_evi: 0.33,
-        last_photo: "bafybeibfaakepic2",
-        balance: 300,
-      },
-      {
-        username: "Charlie",
-        result: 0,
-        last_evi: 0.66,
-        last_photo: "bafybeibfaakepic3",
-        balance: 420,
-      },
-      {
-        username: "Dora",
-        result: -1,
-        last_evi: 0.33,
-        last_photo: "bafybeibfaakepic4",
-        balance: 0,
-      },
-      {
-        username: "Eve",
-        result: -1,
-        last_evi: 0.0,
-        last_photo: "bafybeibfaakepic5",
-        balance: 10,
-      },
-      {
-        username: "Frank",
-        result: 0,
-        last_evi: 0.0,
-        last_photo: "bafybeibfaakepic6",
-        balance: 100,
-      },
-      {
-        username: "Gina",
-        result: 0,
-        last_evi: 0.66,
-        last_photo: "bafybeibfaakepic7",
-        balance: 5,
-      },
-    ];
-    dispatch({ type: "SET_LEADERBOARD", payload: fakeData });
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/user/to_results`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+  
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+  
+        const data: LeaderboardEntry[] = await res.json();
+        dispatch({ type: "SET_LEADERBOARD", payload: data });
+      } catch (error) {
+        console.error("❌ Failed to fetch leaderboard:", error);
+      }
+    };
+  
+    fetchLeaderboard();
   }, []);
 
   return (

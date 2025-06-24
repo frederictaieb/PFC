@@ -51,5 +51,16 @@ class UserPool:
     
     def get_master(self) -> UserSession | None:
         return self.sessions.get("master")
+    
+    def eliminate_user(self, username: str):
+        if username in self.sessions:
+            session = self.sessions.get(username)
+            if session.user.is_still_playing:
+                session.user.is_still_playing = False
+                logger.info(f"User {username} eliminated")
+            else:
+                logger.warning(f"User {username} is not playing")
+        else:
+            logger.warning(f"User {username} not found")
 
 user_pool = UserPool()

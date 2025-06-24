@@ -25,6 +25,9 @@ async def helloworld():
 class RegisterPayload(BaseModel):
     username: str
 
+class EliminateUserPayload(BaseModel):
+    username: str
+
 @router.post("/register_user")
 async def register_user(payload: RegisterPayload):
     username = payload.username
@@ -55,25 +58,13 @@ async def get_users():
     ])
 
     return user_infos
-    #sessions = list(user_pool.sessions.values())
 
-    # Étape 1 : préparer les adresses
-    #addresses = [s.user.wallet.classic_address for s in sessions]
-
-    # Étape 2 : récupérer toutes les balances en parallèle
-    #balances = await asyncio.gather(*[
-    #    get_xrp_balance(address) for address in addresses
-    #])
-
-    # Étape 3 : construire la réponse
-    #result = []
-
-    #for session in (sessions):
-    #    result.append(
-    #        await session.user.to_user_info())
-
-    #return result
-
+@router.post("/eliminate_user")
+async def eliminate_user(payload: EliminateUserPayload):
+    username = payload.username
+    user_pool.eliminate_user(username)
+    logger.info(f"User {username} eliminated")
+    return {"message": "User eliminated", "user": username}
 
 @router.get("/to_results", response_model=List[LeaderboardEntry])
 async def to_results():

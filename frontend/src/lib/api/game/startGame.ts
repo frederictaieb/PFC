@@ -1,5 +1,5 @@
 export const startGame= async () => {
-    console.log("startGame");
+    console.log("Starting Game");
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/startGame`, {
         method: "POST",

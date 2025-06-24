@@ -4,22 +4,28 @@ import { useRef, useEffect, useState } from "react";
 import setupCameraAndHands from "@/lib/ai/video/useHandDetection";
 import { useSearchParams } from "next/navigation";
 import { getPlayer } from "@/lib/api/player/getPlayer";
+import { getRound } from "@/lib/api/game/getRound";
+import { IncrementRound } from "@/lib/api/game/incrementRound";
 
 export default function GamePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const myGestureRef = useRef<"pierre" | "feuille" | "ciseau" | null>(null);
 
   const searchParams = useSearchParams();
   const usernameParam = searchParams.get("username");
 
   const [countdown, setCountdown] = useState<string | null>(null);
-  const [result, setResult] = useState(0)
+  const [loseWinNeutralResult, setLoseWinNeutralResult] = useState(0);
   const [isWinner, setIsWinner] = useState<boolean | null>(null);
   const [roundNumber, setRoundNumber] = useState(0);
-
   const [myGesture, setMyGesture] = useState<"pierre" | "feuille" | "ciseau" | null>(null);
   const [masterGestureNum, setMasterGestureNum] = useState<number | null>(null);
   const [myGestureNum, setMyGestureNum] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  
 
   const [playerInfo, setPlayerInfo] = useState<null | {
     username: string;
@@ -30,35 +36,17 @@ export default function GamePage() {
     };
   }>(null);
 
-  const [error, setError] = useState<string | null>(null);
-
-  function captureImageFromCanvas(canvas: HTMLCanvasElement): string {
-    return canvas.toDataURL("image/jpeg");
-  }
-
-  function computeResult(me: number, opponent: number): number {
-    if (me === opponent) return 0; // égalité
-    if ((me - opponent + 3) % 3 === 1) return 1; // victoire
-    return -1; // défaite
-  }
-
-  function hasWin(me: number, opponent: number): boolean {
-    if (computeResult(me, opponent) === 1) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
+  // Toujours garder myGesture à jour dans la ref
   useEffect(() => {
+    myGestureRef.current = myGesture;
+  }, [myGesture]);
 
-    const fetchRound = async () => {
-      fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round`)
-      .then(res => res.json())
-      .then(data => setRoundNumber(data.round));
-      console.log("Round :", roundNumber);
-    }
+  //useEffect(() => {
+  //  alert(getRound());
+  //}, [roundNumber]);
 
+  // Setup détection + récupération player info
+  useEffect(() => {
     const init = async () => {
       if (usernameParam) {
         const result = await getPlayer(usernameParam);
@@ -75,79 +63,92 @@ export default function GamePage() {
           if (["pierre", "feuille", "ciseau"].includes(g)) {
             setMyGesture(g as "pierre" | "feuille" | "ciseau");
           } else {
-            setMyGesture(null);
-            console.warn("Geste non reconnu :", g);
+            setMyGesture("ciseau");
           }
         });
       }
     };
     init();
-    fetchRound();
   }, [usernameParam]);
 
+
+
+  // Socket stable (ouvre 1 fois quand playerInfo est dispo)
   useEffect(() => {
     if (!playerInfo) return;
 
     const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/${playerInfo.username}`);
+    socketRef.current = socket;
 
-    socket.onmessage = (event) => {
+    socket.onmessage = async (event) => {
       try {
         const data = JSON.parse(event.data);
 
-        if (data.type === "countdown" && ["1", "2", "3"].includes(data.value)) {
-          console.log("Countdown :", data.value);
-          setCountdown(data.value);
+        if (data.type !== "result") return; // 🔒 Ignore les autres types
+        
+        const round = await getRound();
+        const gestureMap = { pierre: 0, feuille: 1, ciseau: 2 };
+        const currentGesture = myGestureRef.current;
+
+        if (!currentGesture || !(currentGesture in gestureMap)) {
+          console.warn("Geste invalide ou non défini :", currentGesture);
+          return;
         }
 
-        if (data.type === "result") {
-          const gestureMap = { pierre: 0, feuille: 1, ciseau: 2 };
+        const myNum = gestureMap[currentGesture];
+        setMyGestureNum(myNum);
+        const masterNum = parseInt(data.value);
+        setMasterGestureNum(masterNum);
+        
+        const result = computeResult(myNum, masterNum);
+        
+        const win = hasWin(myNum, masterNum);
+        setIsWinner(win);
 
-          if (!myGesture || !(myGesture in gestureMap)) {
-            console.warn("Geste invalide ou non défini :", myGesture);
-            return;
-          }
-
-          const myNum = gestureMap[myGesture];
-          const masterNum = parseInt(data.value);
-
-          setMyGestureNum(myNum);
-          setMasterGestureNum(masterNum);
-
-          setResult(computeResult(myNum, masterNum));
-          const win = hasWin(myNum, masterNum);
-          setIsWinner(win);
-
-          if (canvasRef.current) {
-            const imageBase64 = captureImageFromCanvas(canvasRef.current);
-
-            socket.send(
-              JSON.stringify({
-                type: "player_result",
-                value: {
-                  username: playerInfo.username,
-                  gesture: myGesture,
-                  result: result,
-                  round: roundNumber,
-                  hasWin: win,
-                  image: imageBase64,
-                },
-              })
-            );
-
-            console.log("Image envoyée :", imageBase64);
-          } else {
-            console.warn("canvasRef.current est null");
-          }
+        if (!canvasRef.current) {
+          console.warn("Canvas non dispo");
+          return;
         }
+
+        const imageBase64 = captureImageFromCanvas(canvasRef.current);
+
+        const json_data = {
+          type: "player_result",
+          value: {
+            username: playerInfo.username,
+            gesture: currentGesture,
+            result: result,
+            round: round,
+            hasWin: win,
+            image: imageBase64,
+          },
+        };
+
+        console.log("JSON Data :", json_data);
+        socket.send(JSON.stringify(json_data));
       } catch (err) {
-        console.error("Invalid JSON received:", event.data);
+        console.error("Erreur parsing JSON reçu :", event.data);
       }
     };
 
     return () => {
       socket.close();
     };
-  }, [playerInfo, myGesture]);
+  }, [playerInfo, roundNumber]);
+
+  function captureImageFromCanvas(canvas: HTMLCanvasElement): string {
+    return canvas.toDataURL("image/jpeg");
+  }
+
+  function computeResult(me: number, opponent: number): number {
+    if (me === opponent) return 0; // égalité
+    if ((me - opponent + 3) % 3 === 1) return 1; // victoire
+    return -1; // défaite
+  }
+
+  function hasWin(me: number, opponent: number): boolean {
+    return computeResult(me, opponent) === 1 || computeResult(me, opponent) === 0;
+  }
 
   return (
     <div
@@ -166,9 +167,7 @@ export default function GamePage() {
           <div><strong>Balance :</strong> {playerInfo.wallet.balance} XRP</div>
         </div>
       )}
-      {error && (
-        <div style={{ marginBottom: "10px", color: "red" }}>{error}</div>
-      )}
+      {error && <div style={{ marginBottom: "10px", color: "red" }}>{error}</div>}
 
       <video
         ref={videoRef}

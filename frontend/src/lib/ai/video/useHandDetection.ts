@@ -35,7 +35,7 @@ export default async function setupCameraAndHands(
       drawLandmarks
     );
     if (gesture && onGestureDetected) {
-      console.log("Geste détecté :", gesture);
+      //console.log("Geste détecté :", gesture);
       onGestureDetected(gesture);
     }
   });

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { startRound } from '@/lib/api/game/startRound'
 import { useRouter } from 'next/navigation';
+import { IncrementRound } from '@/lib/api/game/incrementRound';
+import { getRound } from '@/lib/api/game/getRound';
 
 export default function GamePage() {
     const [message, setMessage] = useState<{ type: string, value: string | number } | null>(null);
@@ -18,6 +20,8 @@ export default function GamePage() {
         .then(res => res.json())
         .then(data => setRoundNumber(data.round));
 
+
+
         const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/master`);
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -26,6 +30,7 @@ export default function GamePage() {
             if (data.type === "countdown") {
                 setMessage(data);
                 setShowEmoji(false);
+        
             } else if (data.type === "result") {
                 setMessage(data);
                 setShowEmoji(false);
@@ -44,8 +49,7 @@ export default function GamePage() {
                 console.log("Résultat du joueur :", data.value);
                 // Tu peux afficher le geste, la victoire et l'image ici
                 // Exemple d'affichage temporaire (à adapter à ton UI) :
-                
-                alert(data.value.username + " a " + (data.value.hasWin ? "gagné" : "perdu"))
+                //alert(data.value.username + " a " + (data.value.hasWin ? "gagné" : "perdu"))
             }
 
         };
@@ -54,16 +58,18 @@ export default function GamePage() {
     const handleStartRound = async () => {
         try {
             setHasPlayed(false);
-            setIsPlaying(true); // 🔹 désactive bouton
-            fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round/increment`, {
-                method: 'POST',
-              })
-                .then(res => res.json())
-                .then(data => setRoundNumber(data.round));
+            setIsPlaying(true);
+            
+            await IncrementRound();
+            const round = await getRound();  
+            if (typeof round === "number") {
+                setRoundNumber(round);
+            }
+    
             await startRound();
         } catch (err) {
             console.error(err);
-            setIsPlaying(false); // sécurité
+            setIsPlaying(false);
         }
     };
 

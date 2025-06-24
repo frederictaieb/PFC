@@ -6,11 +6,26 @@ import random
 from app.utils.logger import logger_init
 import logging
 
+
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
+
+@router.get("/round")
+def get_round(request: Request):
+    return {"round": request.app.state.round_number}
+
+@router.post("/round/increment")
+def increment_round(request: Request):
+    request.app.state.round_number += 1
+    return {"round": request.app.state.round_number}
+
+@router.post("/round/reset")
+def reset_round(request: Request):
+    request.app.state.round_number = 1
+    return {"round": request.app.state.round_number}
 
 @router.get("/status")
 def get_game_status(request: Request):

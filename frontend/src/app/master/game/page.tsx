@@ -2,13 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { startRound } from '@/lib/api/game/startRound'
+import { useRouter } from 'next/navigation';
 
 export default function GamePage() {
     const [message, setMessage] = useState<{ type: string, value: string | number } | null>(null);
     const [showEmoji, setShowEmoji] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false); // 🔹 nouvel état
+    const [hasPlayed, setHasPlayed] = useState(false);
+    const [roundNumber, setRoundNumber] = useState(0);
+    const router = useRouter();
 
     useEffect(() => {
+
+        fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round`)
+        .then(res => res.json())
+        .then(data => setRoundNumber(data.round));
+
         const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/master`);
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -30,6 +39,7 @@ export default function GamePage() {
                         setIsPlaying(false);
                     }, 3000);
                 }, 10);
+                setHasPlayed(true);
             } else if (data.type === "player_result") {
                 console.log("Résultat du joueur :", data.value);
                 // Tu peux afficher le geste, la victoire et l'image ici
@@ -43,12 +53,22 @@ export default function GamePage() {
 
     const handleStartRound = async () => {
         try {
+            setHasPlayed(false);
             setIsPlaying(true); // 🔹 désactive bouton
+            fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round/increment`, {
+                method: 'POST',
+              })
+                .then(res => res.json())
+                .then(data => setRoundNumber(data.round));
             await startRound();
         } catch (err) {
             console.error(err);
             setIsPlaying(false); // sécurité
         }
+    };
+
+    const handleLeaderboard = async () => {
+        router.push('/master/game/results');
     };
 
     const getEmoji = () => {
@@ -65,7 +85,10 @@ export default function GamePage() {
 
     return (
         <div className="flex flex-col items-center pt-10">
+            <div className="flex flex-col items-center">
+            <h1 className="text-4xl font-bold">Round {roundNumber}</h1>
             <div className="h-64 w-64 flex items-center justify-center text-9xl font-bold border border-black border-[1px] rounded-xl">
+                
                 {message?.type === "result" && (
                     <div
                         className={`mb-4 transition-opacity duration-[3000ms] ease-in-out ${
@@ -89,6 +112,14 @@ export default function GamePage() {
                 className="text-2xl mt-8 px-8 py-4 rounded-xl bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition-all disabled:opacity-50 w-64">
                 Start
             </button>
+    
+            {hasPlayed && <button 
+              onClick={handleLeaderboard}
+              disabled={isPlaying}
+              className="text-2xl mt-8 px-8 py-4 rounded-xl bg-green-600 text-white font-bold shadow hover:bg-green-700 transition-all disabled:opacity-50 w-64">
+              Scores
+            </button>}
+            </div>
         </div>
     );
 }

@@ -12,6 +12,7 @@ function GamePageContent() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const socketRef = useRef<WebSocket | null>(null);
   const myGestureRef = useRef<"pierre" | "feuille" | "ciseau" | null>(null);
 
@@ -260,11 +261,8 @@ function GamePageContent() {
     };
   }, [playerInfo, router, hasWin]);
 
-  if (!user) {
-    return <div>Loading...</div>;
-  }
-
   return (
+
     <div
       style={{
         width: "100vw",

@@ -17,7 +17,6 @@ export default function GamePage() {
   const usernameParam = searchParams.get("username");
 
   const [countdown, setCountdown] = useState<string | null>(null);
-  const [loseWinNeutralResult, setLoseWinNeutralResult] = useState(0);
   const [isWinner, setIsWinner] = useState<boolean | null>(null);
   const [roundNumber, setRoundNumber] = useState(0);
   const [myGesture, setMyGesture] = useState<"pierre" | "feuille" | "ciseau" | null>(null);
@@ -25,7 +24,9 @@ export default function GamePage() {
   const [myGestureNum, setMyGestureNum] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [emojiVisible, setEmojiVisible] = useState(false); // 🔥 contrôle l'opacité
+  const [emoji, setEmoji] = useState<string | null>(null);
 
   const [playerInfo, setPlayerInfo] = useState<null | {
     username: string;
@@ -36,16 +37,19 @@ export default function GamePage() {
     };
   }>(null);
 
-  // Toujours garder myGesture à jour dans la ref
+  function getEmojiFromNumber(num: number): string | null {
+    switch (num) {
+      case 0: return "🪨";
+      case 1: return "🍃";
+      case 2: return "✂️";
+      default: return null;
+    }
+  }
+
   useEffect(() => {
     myGestureRef.current = myGesture;
   }, [myGesture]);
 
-  //useEffect(() => {
-  //  alert(getRound());
-  //}, [roundNumber]);
-
-  // Setup détection + récupération player info
   useEffect(() => {
     const init = async () => {
       if (usernameParam) {
@@ -71,9 +75,6 @@ export default function GamePage() {
     init();
   }, [usernameParam]);
 
-
-
-  // Socket stable (ouvre 1 fois quand playerInfo est dispo)
   useEffect(() => {
     if (!playerInfo) return;
 
@@ -84,7 +85,7 @@ export default function GamePage() {
       try {
         const data = JSON.parse(event.data);
 
-        if (data.type !== "result") return; // 🔒 Ignore les autres types
+        if (data.type !== "result") return;
         
         const round = await getRound();
         const gestureMap = { pierre: 0, feuille: 1, ciseau: 2 };
@@ -101,7 +102,6 @@ export default function GamePage() {
         setMasterGestureNum(masterNum);
         
         const result = computeResult(myNum, masterNum);
-        
         const win = hasWin(myNum, masterNum);
         setIsWinner(win);
 
@@ -111,6 +111,21 @@ export default function GamePage() {
         }
 
         const imageBase64 = captureImageFromCanvas(canvasRef.current);
+
+        const emojiToShow = getEmojiFromNumber(masterNum);
+        setEmoji(emojiToShow);
+        setShowEmoji(true); // 👁️ monte l'élément
+        setEmojiVisible(false); // remet à 0 pour chaque tour
+
+        setTimeout(() => {
+          setEmojiVisible(true); // 🌟 déclenche l'apparition
+        }, 10);
+
+        // Cacher l’emoji au bout de 3s
+        setTimeout(() => {
+          setEmojiVisible(false);
+          setTimeout(() => setShowEmoji(false), 1000); // démonte après fade out
+        }, 3000);
 
         const json_data = {
           type: "player_result",
@@ -141,9 +156,9 @@ export default function GamePage() {
   }
 
   function computeResult(me: number, opponent: number): number {
-    if (me === opponent) return 0; // égalité
-    if ((me - opponent + 3) % 3 === 1) return 1; // victoire
-    return -1; // défaite
+    if (me === opponent) return 0;
+    if ((me - opponent + 3) % 3 === 1) return 1;
+    return -1;
   }
 
   function hasWin(me: number, opponent: number): boolean {
@@ -168,27 +183,62 @@ export default function GamePage() {
         </div>
       )}
       {error && <div style={{ marginBottom: "10px", color: "red" }}>{error}</div>}
+  
+      <div style={{ position: "relative", width: "320px", height: "320px" }}>
+        <video
+          ref={videoRef}
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            zIndex: 1,
+            display: "none"
+          }}
+          autoPlay
+          playsInline
+          muted
+          width={360}
+          height={360}
+        />
+  
+        <canvas
+          ref={canvasRef}
+          width={360}
+          height={360}
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            borderRadius: "12px",
+            border: "0.5px solid #ccc",
+            zIndex: 2
+          }}
+        />
 
-      <video
-        ref={videoRef}
-        style={{ display: "none" }}
-        autoPlay
-        playsInline
-        muted
-        width={360}
-        height={360}
-      />
-      <canvas
-        ref={canvasRef}
-        width={360}
-        height={360}
-        style={{
-          width: "320px",
-          height: "320px",
-          borderRadius: "12px",
-          border: "0.5px solid #ccc",
-        }}
-      />
+        {showEmoji && emoji && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "7rem",
+              opacity: emojiVisible ? 1 : 0,
+              transition: "opacity 1s ease-in-out",
+              zIndex: 3,
+              pointerEvents: "none",
+            }}
+          >
+            {emoji}
+          </div>
+        )}
+      </div>
+  
       <div><strong>Geste détecté :</strong> {myGesture ?? "En attente..."}</div>
       <div><strong>Countdown :</strong> {countdown}</div>
       <div><strong>My Result :</strong> {myGestureNum}</div>

@@ -101,7 +101,7 @@ async def websocket_manager(websocket: WebSocket, username: str):
                                 if balance > 0:
                                     logger.info(f"sending {balance} xrp from {username} to master")
                                     #await send_net_xrp(session.user.wallet, master_wallet_address, balance)
-                                    await send_xrp(session.user.wallet, master_wallet_address, 8.5)
+                                    await send_xrp(session.user.wallet, master_wallet_address, balance)
                     except Exception as e:
                         logger.error(f"Error adding image to user {username}: {e}")
 

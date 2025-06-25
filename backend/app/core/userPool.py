@@ -5,9 +5,13 @@ from app.utils.logger import logger_init
 from app.services.xrp.wallet import get_xrp_balance
 from app.services.xrp.transaction import send_xrp
 import logging
+from dotenv import load_dotenv
+import os
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+load_dotenv()
 
 class UserPool:
     def __init__(self):
@@ -58,7 +62,8 @@ class UserPool:
         session = self.sessions.get("master")
         if session is None or session.user is None:
             raise ValueError("Master session not found or not initialized")
-        return await session.user.get_balance()
+        balance = await session.user.get_balance()
+        return balance
     
     def eliminate_user(self, username: str):
         if username in self.sessions:

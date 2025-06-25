@@ -8,6 +8,9 @@ import { getRound } from "@/lib/api/game/getRound";
 import { IncrementRound } from "@/lib/api/game/incrementRound";
 
 export default function GamePage() {
+
+  const XRP_LOGO_URL = "/xrp-logo.svg";
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const socketRef = useRef<WebSocket | null>(null);
@@ -179,7 +182,10 @@ export default function GamePage() {
       {playerInfo && (
         <div style={{ marginBottom: "10px", textAlign: "center" }}>
           <div><strong>Utilisateur :</strong> {playerInfo.username}</div>
-          <div><strong>Balance :</strong> {playerInfo.wallet.balance} XRP</div>
+          <p className="font-medium text-black mt-1 flex items-center justify-center gap-1">
+            <span>{playerInfo.wallet.balance}</span>
+            <img src={XRP_LOGO_URL} alt="XRP" className="w-4 h-4" />
+          </p>
         </div>
       )}
       {error && <div style={{ marginBottom: "10px", color: "red" }}>{error}</div>}

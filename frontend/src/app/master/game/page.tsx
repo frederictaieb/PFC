@@ -15,6 +15,14 @@ export default function GamePage() {
     const [roundNumber, setRoundNumber] = useState(0);
     const router = useRouter();
 
+    // Fonction utilitaire locale pour base64 → Blob
+    function base64ToBlob(base64: string, mime = "audio/wav") {
+        const byteChars = atob(base64);
+        const byteNumbers = new Array(byteChars.length).fill(0).map((_, i) => byteChars.charCodeAt(i));
+        const byteArray = new Uint8Array(byteNumbers);
+        return new Blob([byteArray], { type: mime });
+    }
+
     useEffect(() => {
         // Charger le numéro du round actuel
         fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round`)
@@ -26,29 +34,46 @@ export default function GamePage() {
 
         socket.onmessage = async (event) => {
             const data = JSON.parse(event.data);
-            console.log(data);
-
-            if (data.type === "countdown") {
-                await speak(data.value, "Metallic neutral voice");
+        
+            if (data.type === "announcement") {
+                console.log("announcement", data);
+                if (data.audio_base64) {
+                    const audioBlob = base64ToBlob(data.audio_base64);
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                }
+            } else if (data.type === "countdown") {
+                console.log("countdown", data);
+                if (data.audio_base64) {
+                    const audioBlob = base64ToBlob(data.audio_base64);
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                }
                 setMessage(data);
                 setShowEmoji(false);
+
             } else if (data.type === "result") {
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                console.log("result", data);
+                if (data.audio_base64) {
+                    const audioBlob = base64ToBlob(data.audio_base64);
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                }
                 setMessage(data);
                 setShowEmoji(false);
 
+                // lancer le fade-in
                 setTimeout(() => {
-                    if (data.value === 0) speak("Rock", "Metallic neutral voice");
-                    if (data.value === 1) speak("Paper", "Metallic neutral voice");
-                    if (data.value === 2) speak("Scissors", "Metallic neutral voice");
-
                     setShowEmoji(true);
 
+                    // désactiver isPlaying après la transition (3s)
                     setTimeout(() => {
                         setIsPlaying(false);
                     }, 3000);
                 }, 10);
-
                 setHasPlayed(true);
             }
         };
@@ -56,7 +81,9 @@ export default function GamePage() {
         return () => {
             socket.close();
         };
+
     }, []);
+
 
     useEffect(() => {
         const resetState = () => {
@@ -77,11 +104,11 @@ export default function GamePage() {
             setIsPlaying(true);
             setHasPlayed(false);
 
-            await speak("Attention! Game is starting !", "Metallic neutral voice");
-            await new Promise(resolve => setTimeout(resolve, 2500));
+            //await speak("Attention! Game is starting !", "Metallic neutral voice");
+            //await new Promise(resolve => setTimeout(resolve, 2500));
 
-            await speak("Be ready!", "Metallic neutral voice");
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            //await speak("Be ready!", "Metallic neutral voice");
+            //await new Promise(resolve => setTimeout(resolve, 1500));
 
             await IncrementRound();
             const round = await getRound();
@@ -100,7 +127,7 @@ export default function GamePage() {
 
     const getEmoji = () => {
         if (message?.type === "result") {
-            switch (message.value) {
+            switch (Number(message.value)) {
                 case 0: return "🪨";
                 case 1: return "🍃";
                 case 2: return "✂️";

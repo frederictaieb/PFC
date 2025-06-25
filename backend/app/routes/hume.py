@@ -27,8 +27,22 @@ class TTSRequest(BaseModel):
     text: str
     description: str | None = None
 
+async def send_tts_to_master(websocket, text: str, description: str = "Metallic neutral voice"):
+    try:
+        tts_request = TTSRequest(text=text, description=description)
+        result = await synthesize_tts(tts_request)
+        audio_base64 = result["audio_base64"]
+        
+        await websocket.send_json({
+            "type": "countdown",
+            "value": text,
+            "audio_base64": audio_base64
+        })
+    except Exception as e:
+        logger.error(f"Erreur synthèse vocale : {e}")
+
 @router.post("/tts_json")
-async def synthesize_tts(request: TTSRequest):
+async def synthesize_tts_json(request: TTSRequest):
     try:
         result = await hume_client.tts.synthesize_json(
             utterances=[
@@ -53,7 +67,7 @@ async def synthesize_tts(request: TTSRequest):
 
 
 @router.post("/tts_wav")
-async def synthesize_tts(request: TTSRequest):
+async def synthesize_tts_wav(request: TTSRequest):
     try:
         result = await hume_client.tts.synthesize_json(
             utterances=[

@@ -5,10 +5,44 @@ import asyncio
 import random
 from app.utils.logger import logger_init
 import logging
-
+from app.routes.hume import TTSRequest, synthesize_tts_json
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+SPEED_OF_SPEECH = 0.5
+DESCRIPTION_OF_SPEECH = "Metallic neutral voice, talking fast"
+
+async def speak_and_broadcast(type_broadcast: str, value: str, include_anonymous: bool = True):
+    try:
+        words_to_speak = value
+
+        if type_broadcast == "result":
+            if value == "0":
+                words_to_speak = "Rock"
+            elif value == "1":
+                words_to_speak = "Paper"
+            else:
+                words_to_speak = "Scissors"
+
+        req = TTSRequest(text=words_to_speak, description=DESCRIPTION_OF_SPEECH)
+        result = await synthesize_tts_json(req)  # appel direct de la fonction Python
+        audio_base64 = result["audio_base64"]    # accès direct au dict
+
+        await user_pool.broadcast({
+            "type": type_broadcast,
+            "value": value,
+            "audio_base64": audio_base64
+        }, include_anonymous=include_anonymous)
+
+    except Exception as e:
+        logger.error(f"Erreur pendant speak_and_broadcast : {e}")
+        await user_pool.broadcast({
+            "type": type_broadcast,
+            "value": value,
+            "audio_base64": None
+        }, include_anonymous=include_anonymous)
+
 
 
 router = APIRouter()
@@ -56,22 +90,41 @@ async def start_game(request: Request):
 
 @router.post("/startRound")
 async def start_round(request: Request):
-    logger.info("Starting game countdown...")
+    logger.info("⏳ Starting game round...")
 
+    # Étape 1 : introduction vocale
+    await speak_and_broadcast(type_broadcast="announcement", value="Attention! Game is starting!")
+    await asyncio.sleep(SPEED_OF_SPEECH)
+
+    await speak_and_broadcast(type_broadcast="announcement", value="Be ready!")
+    await asyncio.sleep(SPEED_OF_SPEECH)
+
+    # Étape 2 : décompte
     for i in range(1, 4):
-        await user_pool.broadcast(
-            {"type": "countdown", "value": str(i)}, include_anonymous=True
-        )
-        await asyncio.sleep(1)
+        await speak_and_broadcast(type_broadcast="countdown", value=str(i))
+        await asyncio.sleep(SPEED_OF_SPEECH)
 
+    # Étape 3 : choix aléatoire du master
     result = random.randint(0, 2)
-    logger.info(f"Result: {result}")
+    await speak_and_broadcast(type_broadcast="result", value=str(result))
 
-    await user_pool.broadcast(
-        {"type": "result", "value": result}, include_anonymous=True
-    )
+    #logger.info(f"🎯 Master gesture selected: {result}")
 
-    return {"result": "Round started!"}
+    #gesture_map = {0: "Rock", 1: "Paper", 2: "Scissors"}
+    #gesture_name = gesture_map[result]
+
+    # Étape 4 : caster le geste choisi (Rock, Paper, Scissors)
+    #await speak_and_broadcast(gesture_name, message_type="result")
+    #await asyncio.sleep(1.5)
+
+    # Étape 5 : transmettre le résultat numérique aux clients (pour logique jeu)
+    #await user_pool.broadcast({
+    #    "type": "result",
+    #    "value": result
+    #}, include_anonymous=True)
+
+    return {"result": result, "message": "Round started!"}
+
 
 @router.post("/round_reset")
 async def round_reset(request: Request):
@@ -84,3 +137,4 @@ async def round_reset(request: Request):
 
     return {"status": "ok", "message": "Reset broadcast sent"}
  
+

@@ -7,8 +7,11 @@ from app.services.xrp.wallet import get_xrp_balance
 from app.services.os.base64_to_tmp import base64_to_tmp
 import os
 
+from app.routes.hume import send_tts_to_master
+
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 
 async def websocket_manager(websocket: WebSocket, username: str):

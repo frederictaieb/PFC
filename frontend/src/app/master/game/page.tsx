@@ -5,6 +5,7 @@ import { startRound } from '@/lib/api/game/startRound'
 import { useRouter } from 'next/navigation';
 import { IncrementRound } from '@/lib/api/game/incrementRound';
 import { getRound } from '@/lib/api/game/getRound';
+import { speak } from '@/lib/ai/sounds/speak';
 
 export default function GamePage() {
     const [message, setMessage] = useState<{ type: string, value: string | number } | null>(null);
@@ -28,10 +29,13 @@ export default function GamePage() {
             console.log(data);
 
             if (data.type === "countdown") {
+                speak(data, "fr-FR");
                 setMessage(data);
                 setShowEmoji(false);
+               
         
             } else if (data.type === "result") {
+                speak(data, "fr-FR");
                 setMessage(data);
                 setShowEmoji(false);
 
@@ -61,6 +65,10 @@ export default function GamePage() {
 
     const handleStartRound = async () => {
         try {
+            speak("Attention! Le jeu commence !", "fr-FR");
+            await new Promise(resolve => setTimeout(resolve, 2500));
+            speak("Préparez-vous!", "fr-FR");
+
             setHasPlayed(false);
             setIsPlaying(true);
             

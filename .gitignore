@@ -41,3 +41,9 @@ build/
 *.swp
 *.tmp
 
+
+__pycache__/
+*.pyc
+
+*.pyc
+__pycache__/

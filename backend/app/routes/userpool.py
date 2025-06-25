@@ -8,6 +8,7 @@ from app.models.user import LeaderboardEntry
 from app.models.user import HasPlayedRequest
 
 
+
 import asyncio
 
 from pydantic import BaseModel
@@ -35,14 +36,9 @@ async def get_winners():
 async def collect_pool_xrp():
     return await user_pool.collect_pool_xrp()
 
-@router.get("/split_pool_xrp", response_model=List[WalletInfo])
-async def split_pool_xrp(sum_xrp: float):
-    winners = await get_winners()
-    share_xrp = sum_xrp / len(winners)
-    for winner in winners:
-        logger.info(f"Sending {share_xrp} xrp to {winner.username}")
-        await send_xrp(winner.wallet, master_wallet_address, share_xrp)
-    return {"message": "XRP split", "share_xrp": share_xrp}
+@router.get("/dispatch_pool_xrp")
+async def dispatch_pool_xrp():
+    return await user_pool.dispatch_pool_xrp()
 
 @router.get("/to_results", response_model=List[LeaderboardEntry])
 async def to_results():

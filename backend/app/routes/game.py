@@ -72,4 +72,15 @@ async def start_round(request: Request):
     )
 
     return {"result": "Round started!"}
+
+@router.post("/round_reset")
+async def round_reset(request: Request):
+    logger.info("🔁 Reset des emojis de tous les joueurs")
+
+    await user_pool.broadcast(
+        {"type": "broadcast_reset"},
+        include_anonymous=False
+    )
+
+    return {"status": "ok", "message": "Reset broadcast sent"}
  

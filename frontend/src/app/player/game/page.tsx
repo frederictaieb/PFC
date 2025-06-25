@@ -5,12 +5,10 @@ import setupCameraAndHands from "@/lib/ai/video/useHandDetection";
 import { useSearchParams } from "next/navigation";
 import { getPlayer } from "@/lib/api/player/getPlayer";
 import { getRound } from "@/lib/api/game/getRound";
-import { IncrementRound } from "@/lib/api/game/incrementRound";
 
 export default function GamePage() {
-
   const XRP_LOGO_URL = "/xrp-logo.svg";
-  
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const socketRef = useRef<WebSocket | null>(null);
@@ -28,7 +26,7 @@ export default function GamePage() {
   const [error, setError] = useState<string | null>(null);
 
   const [showEmoji, setShowEmoji] = useState(false);
-  const [emojiVisible, setEmojiVisible] = useState(false); // 🔥 contrôle l'opacité
+  const [emojiVisible, setEmojiVisible] = useState(false);
   const [emoji, setEmoji] = useState<string | null>(null);
 
   const [showResultEmoji, setShowResultEmoji] = useState(false);
@@ -91,8 +89,17 @@ export default function GamePage() {
       try {
         const data = JSON.parse(event.data);
 
+        if (data.type === "broadcast_reset") {
+          // Cacher les emojis via message du serveur
+          setEmojiVisible(false);
+          setTimeout(() => setShowEmoji(false), 1000);
+          setShowResultEmoji(false);
+          setResultEmoji(null);
+          return;
+        }
+
         if (data.type !== "result") return;
-        
+
         const round = await getRound();
         const gestureMap = { pierre: 0, feuille: 1, ciseau: 2 };
         const currentGesture = myGestureRef.current;
@@ -106,7 +113,7 @@ export default function GamePage() {
         setMyGestureNum(myNum);
         const masterNum = parseInt(data.value);
         setMasterGestureNum(masterNum);
-        
+
         const result = computeResult(myNum, masterNum);
         const win = hasWin(myNum, masterNum);
         setIsWinner(win);
@@ -120,29 +127,16 @@ export default function GamePage() {
 
         const emojiToShow = getEmojiFromNumber(masterNum);
         setEmoji(emojiToShow);
-        setShowEmoji(true); // 👁️ monte l'élément
-        setEmojiVisible(false); // remet à 0 pour chaque tour
+        setShowEmoji(true);
+        setEmojiVisible(false);
 
         setTimeout(() => {
-          setEmojiVisible(true); // 🌟 déclenche l'apparition
+          setEmojiVisible(true);
         }, 10);
 
-        // Cacher l’emoji au bout de 3s
-        setTimeout(() => {
-          setEmojiVisible(false);
-          setTimeout(() => setShowEmoji(false), 1000); // démonte après fade out
-        }, 3000);
-
-        setTimeout(() => {
-          setResultEmoji(win ? "✅" : "❌");
-          setShowResultEmoji(true);
-        
-          // Le cacher après 2s
-          setTimeout(() => {
-            setShowResultEmoji(false);
-            setResultEmoji(null);
-          }, 2000);
-        }, 1000);
+        // Affiche l’emoji de résultat
+        setResultEmoji(win ? "✅" : "❌");
+        setShowResultEmoji(true);
 
         const json_data = {
           type: "player_result",
@@ -203,7 +197,7 @@ export default function GamePage() {
         </div>
       )}
       {error && <div style={{ marginBottom: "10px", color: "red" }}>{error}</div>}
-  
+
       <div style={{ position: "relative", width: "320px", height: "320px" }}>
         <video
           ref={videoRef}
@@ -221,7 +215,7 @@ export default function GamePage() {
           width={360}
           height={360}
         />
-  
+
         <canvas
           ref={canvasRef}
           width={360}
@@ -270,7 +264,7 @@ export default function GamePage() {
               alignItems: "center",
               justifyContent: "center",
               fontSize: "10rem",
-              opacity: showResultEmoji ? 0.5 : 0,
+              opacity: 0.5,
               transition: "opacity 0.5s ease-in-out",
               zIndex: 4,
               pointerEvents: "none",
@@ -280,7 +274,7 @@ export default function GamePage() {
           </div>
         )}
       </div>
-  
+
       <div><strong>Geste détecté :</strong> {myGesture ?? "En attente..."}</div>
       <div><strong>Countdown :</strong> {countdown}</div>
       <div><strong>My Result :</strong> {myGestureNum}</div>

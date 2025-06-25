@@ -71,6 +71,16 @@ const handleClose = () => {
         console.error("❌ Failed to get master balance", error);
       });
   }
+
+  try {
+    fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round_reset`, {
+      method: "POST",
+    });
+    console.log("🔁 Broadcast reset envoyé");
+  } catch (err) {
+    console.error("Erreur lors du broadcast reset", err);
+  }
+
   router.push('/master/game');
 }
   

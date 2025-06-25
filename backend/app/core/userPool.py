@@ -7,6 +7,8 @@ from app.services.xrp.transaction import send_xrp
 import logging
 from dotenv import load_dotenv
 import os
+from typing import List
+from app.models.user import UserInfo
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -65,6 +67,12 @@ class UserPool:
         balance = await session.user.get_balance()
         return balance
     
+    def get_master_wallet(self) -> str:
+        session = self.sessions.get("master")
+        if session is None or session.user is None:
+            raise ValueError("Master session not found or not initialized")
+        return session.user.wallet
+    
     def eliminate_user(self, username: str):
         if username in self.sessions:
             session = self.sessions.get(username)
@@ -75,6 +83,47 @@ class UserPool:
                 logger.warning(f"User {username} is not playing")
         else:
             logger.warning(f"User {username} not found")
+
+    def get_losers(self) -> List[User]:
+        losers = []
+        for username, session in self.sessions.items():
+            if username == "master":
+                continue  # ⛔️ on ignore l'utilisateur master
+            if not session.user.is_still_playing:
+                losers.append(session.user)
+        return losers
+
+    async def collect_pool_xrp(self):
+        losers = self.get_losers()
+        master = self.get("master")
+        if master is None or master.user is None:
+            raise ValueError("Master wallet not initialized")
+        
+        master_wallet_address = master.user.wallet.address
+        total_xrp = 0.0
+
+        for loser in losers:
+            tx_ids=[]
+            amount = await loser.get_balance() or 0
+            if amount > 0:
+                logger.info(f"Collecting {amount} XRP from {loser.username}")
+                tx_ids.append(await loser.send_xrp(
+                    destination=master_wallet_address,
+                    amount=amount - 0.000010
+                ))
+                total_xrp += amount
+
+        return {"message": "XRP collected", "total_xrp": total_xrp, "tx_ids": tx_ids}
+
+
+    def get_winners(self) -> List[User]:
+        winners = []
+        for username, session in self.sessions.items():
+            if username == "master":
+                continue  # ⛔️ on ignore l'utilisateur master
+            if session.user.is_still_playing:
+                winners.append(session.user)
+        return winners
 
     async def send_xrp_to_winner(self, winner: str, amount: float):
         session_winner = self.sessions.get(winner)

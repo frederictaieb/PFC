@@ -103,18 +103,19 @@ async def websocket_manager(websocket: WebSocket, username: str):
                             os.remove(image_path)
                             os.remove(thumbnail_path)
 
+                            # Si le joueur a perdu, on lui retire les xrp   
                             if not hasWin:
                                 logger.info(f"User {username} has lost")
-                                #session.user.is_still_playing = False
-                                user_wallet_address = session.user.wallet.classic_address
-                                master_wallet_address = user_pool.get("master").user.wallet.classic_address
-                                logger.info(f"Wallet address: {user_wallet_address}")
-                                balance = await get_xrp_balance(user_wallet_address)
-                                logger.info(f"{username}'s Balance: {balance}")
-                                if balance > 0:
-                                    logger.info(f"sending {balance} xrp from {username} to master")
-                                    #await send_net_xrp(session.user.wallet, master_wallet_address, balance)
-                                    await send_xrp(session.user.wallet, master_wallet_address, balance)
+                                session.user.is_still_playing = False
+                            #    user_wallet_address = session.user.wallet.classic_address
+                            #    master_wallet_address = user_pool.get("master").user.wallet.classic_address
+                            #    logger.info(f"Wallet address: {user_wallet_address}")
+                            #    balance = await get_xrp_balance(user_wallet_address)
+                            #    logger.info(f"{username}'s Balance: {balance}")
+                            #    if balance > 0:
+                            #        logger.info(f"sending {balance} xrp from {username} to master")
+                            #        #await send_net_xrp(session.user.wallet, master_wallet_address, balance)
+                            #        await send_xrp(session.user.wallet, master_wallet_address, balance)
                     except Exception as e:
                         logger.error(f"Error adding image to user {username}: {e}")
 

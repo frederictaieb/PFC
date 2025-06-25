@@ -1,6 +1,6 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import user, game, master, hume
+from app.routes import user, game, master, hume, userpool
 from app.routes.websocket import websocket_manager
 from app.utils.logger import logger_init
 import logging
@@ -32,6 +32,7 @@ def setup_game_state():
 # Routes API
 app.include_router(master.router, prefix="/api/master", tags=["Master"])
 app.include_router(user.router, prefix="/api/user", tags=["User"])
+app.include_router(userpool.router, prefix="/api/userpool", tags=["UserPool"])
 app.include_router(game.router, prefix="/api/game", tags=["Game"])
 app.include_router(hume.router, prefix="/api/hume", tags=["Hume"])
 

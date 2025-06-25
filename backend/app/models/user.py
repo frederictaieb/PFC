@@ -14,6 +14,7 @@ from app.services.ipfs.upload import upload_file
 from app.utils.logger import logger_init
 from app.services.ai.emotion_score import compute_emotion_score
 from app.services.xrp.wallet import get_xrp_balance
+from app.services.xrp.transaction import send_xrp
 
 
 # Initialiser le logger
@@ -27,7 +28,7 @@ dotenv.load_dotenv()
 class WalletInfo(BaseModel):
     address: str
     public_key: str
-    balance: Optional[Decimal] = None
+    balance: float
 
 # ✅ Modèle d’image avec validation automatique
 class ImageData(BaseModel):
@@ -52,6 +53,14 @@ class UserInfo(BaseModel):
     ipfs_images: List[ImageData]
     last_result: Optional[int] = None  # ✅ maintenant optionnel
     last_round: Optional[int] = None   # ✅ maintenant optionnel
+    is_still_playing: bool
+
+class HasPlayedRequest(BaseModel):
+    username: str
+    result: int
+    round_number: int
+    image_path: str
+    thumbnail_path: str
     is_still_playing: bool
 
 # ✅ Classe User principale
@@ -123,6 +132,20 @@ class User(Client):
 
     def clear_images(self):
         self.ipfs_images.clear()
+
+    def has_played(self, result: int, round_number: int, image_path: str, thumbnail_path: str, is_still_playing: bool) -> bool:
+        self.last_result = result
+        self.last_round = round_number
+        self.image_path = image_path
+        self.thumbnail_path = thumbnail_path
+        self.is_still_playing = is_still_playing
+
+    async def send_xrp(self, destination: str, amount: float):
+        tx_id = await send_xrp(
+            sender_wallet=self.wallet, 
+            destination_address=destination, 
+            amount_xrp=amount)
+        return tx_id
 
     def __repr__(self):
         return (

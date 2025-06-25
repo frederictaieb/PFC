@@ -32,6 +32,7 @@ async def send_xrp(sender_wallet: Wallet, destination_address: str, amount_xrp: 
         response = await submit_and_wait(signed_tx, client)
 
         tx_id = signed_tx.get_hash()
+        return tx_id
         logger.info(f"Transaction sent: {tx_id}")
 
     except Exception as e:

@@ -109,7 +109,10 @@ export default function RegisterPage() {
         <button
           disabled={clicked || gameStarted || countdown !== null}
           onClick={handleRegister}
-          className="px-8 py-4 rounded-xl text-lg w-64 text-center font-bold text-white bg-blue-600 hover:bg-blue-700 shadow transition-all disabled:opacity-50"
+          className={`px-8 py-4 rounded-xl text-lg w-64 text-center font-bold text-white shadow transition-all disabled:opacity-50
+            ${registered && !countdown ? "bg-orange-300 hover:bg-orange-400" :
+              gameStarted || countdown ? "bg-gray-400" :
+              "bg-blue-600 hover:bg-blue-700"}`}
         >
           {countdown || (registered ? "Waiting..." : gameStarted ? "Game in progress" : "Register")}
         </button>

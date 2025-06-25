@@ -4,6 +4,8 @@ from app.core.userPool import user_pool
 from app.services.xrp.wallet import get_xrp_balance
 from typing import List
 from app.models.user import LeaderboardEntry
+from app.models.user import HasPlayedRequest
+
 
 import asyncio
 
@@ -66,40 +68,18 @@ async def eliminate_user(payload: EliminateUserPayload):
     logger.info(f"User {username} eliminated")
     return {"message": "User eliminated", "user": username}
 
-@router.get("/to_results", response_model=List[LeaderboardEntry])
-async def to_results():
-    results: List[LeaderboardEntry] = []
+@router.post("/has_played")
+async def has_played(payload: HasPlayedRequest):
+    session = user_pool.get(payload.username)
+    if not session:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    for session in user_pool.sessions.values():
-        # 🎯 On ignore "master"
-        if session.user.username == "master":
-            continue
+    session.user.has_played(
+        payload.result,
+        payload.round_number,
+        payload.image_path,
+        payload.thumbnail_path,
+        payload.is_still_playing
+    )
 
-        # 🎯 On ignore ceux qui ne jouent plus
-        if not session.user.is_still_playing:
-            continue
-
-        user_info: UserInfo = await session.user.to_user_info()
-
-        last_round = user_info.last_round if user_info.last_round is not None else -1
-        last_result = user_info.last_result if user_info.last_result is not None else 0
-
-        last_image = next(
-            (img for img in reversed(user_info.ipfs_images) if img.round == last_round),
-            None
-        )
-
-        last_evi = float(last_image.evi) if last_image and last_image.evi is not None else 0.0
-        last_photo = last_image.image_cid if last_image else ""
-        last_thumbnail = last_image.thumbnail_cid if last_image else ""
-
-        results.append(LeaderboardEntry(
-            username=user_info.username,
-            result=last_result,
-            last_evi=last_evi,
-            last_photo=last_photo,
-            last_thumbnail=last_thumbnail,
-            balance=float(user_info.wallet.balance or 0),
-        ))
-
-    return results
+    return {"success": True}

@@ -28,11 +28,10 @@ async def get_master_balance():
     balance = await user_pool.get_master_balance()
     return {"balance": balance}
 
-@router.post("/send_xrp_to_winners")
-async def send_xrp_to_winners(payload: SendXRPRequest):
-    for username in payload.winners:
-        await user_pool.send_xrp_to_winner(username, payload.amount)
-    return {"message": f"{payload.amount} XRP sent to winners"}
+@router.get("/get_master_wallet")
+def get_master_wallet():
+    wallet = user_pool.get_master_wallet()
+    return {"wallet": wallet}
 
 
 

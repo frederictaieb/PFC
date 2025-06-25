@@ -5,6 +5,7 @@ import setupCameraAndHands from "@/lib/ai/video/useHandDetection";
 import { useSearchParams } from "next/navigation";
 import { getPlayer } from "@/lib/api/player/getPlayer";
 import { getRound } from "@/lib/api/game/getRound";
+import { useRouter } from "next/navigation";
 
 export default function GamePage() {
   const XRP_LOGO_URL = "/xrp-logo.svg";
@@ -19,6 +20,7 @@ export default function GamePage() {
 
   const [countdown, setCountdown] = useState<string | null>(null);
   const [isWinner, setIsWinner] = useState<boolean | null>(null);
+  const isWinnerRef = useRef<boolean | null>(null);
   const [roundNumber, setRoundNumber] = useState(0);
   const [myGesture, setMyGesture] = useState<"pierre" | "feuille" | "ciseau" | null>(null);
   const [masterGestureNum, setMasterGestureNum] = useState<number | null>(null);
@@ -32,6 +34,7 @@ export default function GamePage() {
   const [showResultEmoji, setShowResultEmoji] = useState(false);
   const [resultEmoji, setResultEmoji] = useState<string | null>(null);
 
+
   const [playerInfo, setPlayerInfo] = useState<null | {
     username: string;
     wallet: {
@@ -41,6 +44,8 @@ export default function GamePage() {
     };
   }>(null);
 
+  const router = useRouter();
+
   function getEmojiFromNumber(num: number): string | null {
     switch (num) {
       case 0: return "🪨";
@@ -49,6 +54,10 @@ export default function GamePage() {
       default: return null;
     }
   }
+
+  useEffect(() => {
+    isWinnerRef.current = isWinner;
+  }, [isWinner]);
 
   useEffect(() => {
     myGestureRef.current = myGesture;
@@ -95,6 +104,39 @@ export default function GamePage() {
           setTimeout(() => setShowEmoji(false), 1000);
           setShowResultEmoji(false);
           setResultEmoji(null);
+
+          if (isWinnerRef.current === false) {
+            // Déclenche le fondu au noir
+            const overlay = document.createElement("div");
+            overlay.style.position = "absolute";
+            overlay.style.top = "0";
+            overlay.style.left = "0";
+            overlay.style.width = "100%";
+            overlay.style.height = "100%";
+            overlay.style.backgroundColor = "black";
+            overlay.style.opacity = "0";
+            overlay.style.transition = "opacity 2s ease-in-out";
+            overlay.style.zIndex = "5";
+            canvasRef.current?.parentElement?.appendChild(overlay);
+            
+            // Déclenche l'opacité à 1 pour le fondu
+            requestAnimationFrame(() => {
+              overlay.style.opacity = "1";
+            });
+          
+            // Éteindre la caméra et afficher le message
+            setTimeout(() => {
+              if (videoRef.current?.srcObject) {
+                const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+                tracks.forEach(track => track.stop());
+                videoRef.current.srcObject = null;
+              }
+          
+              overlay.innerHTML = `<div style="color: white; font-size: 2rem; display: flex; align-items: center; justify-content: center; height: 100%;">Merci d'avoir joué !🙏</div>`;
+            }, 2000); // après le fondu
+            router.push("/");
+          }
+          
           return;
         }
 

@@ -57,6 +57,9 @@ const handleClose = () => {
         return res.json();
       })
       .then(data => {
+        const balance = parseFloat(data.balance);
+        const amountPerWinner = balance / winners.length;
+        // Send XRP to winners
         fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/master/send_xrp_to_winners`, {
           method: "POST",
           headers: {
@@ -64,7 +67,8 @@ const handleClose = () => {
           },
           body: JSON.stringify({ 
             winners: winnerUsernames,
-            amount: 1.0 }),
+            amount: amountPerWinner 
+          }),
         });
       })
       .catch(error => {
@@ -72,6 +76,7 @@ const handleClose = () => {
       });
   }
 
+  // Reset the round
   try {
     fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round_reset`, {
       method: "POST",

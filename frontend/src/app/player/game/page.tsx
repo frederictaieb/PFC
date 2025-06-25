@@ -31,6 +31,9 @@ export default function GamePage() {
   const [emojiVisible, setEmojiVisible] = useState(false); // 🔥 contrôle l'opacité
   const [emoji, setEmoji] = useState<string | null>(null);
 
+  const [showResultEmoji, setShowResultEmoji] = useState(false);
+  const [resultEmoji, setResultEmoji] = useState<string | null>(null);
+
   const [playerInfo, setPlayerInfo] = useState<null | {
     username: string;
     wallet: {
@@ -129,6 +132,17 @@ export default function GamePage() {
           setEmojiVisible(false);
           setTimeout(() => setShowEmoji(false), 1000); // démonte après fade out
         }, 3000);
+
+        setTimeout(() => {
+          setResultEmoji(win ? "✅" : "❌");
+          setShowResultEmoji(true);
+        
+          // Le cacher après 2s
+          setTimeout(() => {
+            setShowResultEmoji(false);
+            setResultEmoji(null);
+          }, 2000);
+        }, 1000);
 
         const json_data = {
           type: "player_result",
@@ -241,6 +255,28 @@ export default function GamePage() {
             }}
           >
             {emoji}
+          </div>
+        )}
+
+        {showResultEmoji && resultEmoji && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "10rem",
+              opacity: showResultEmoji ? 0.5 : 0,
+              transition: "opacity 0.5s ease-in-out",
+              zIndex: 4,
+              pointerEvents: "none",
+            }}
+          >
+            {resultEmoji}
           </div>
         )}
       </div>

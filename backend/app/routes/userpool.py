@@ -32,6 +32,16 @@ async def get_winners():
     winners = user_pool.get_winners()
     return [await winner.to_user_info() for winner in winners]
 
+@router.get("/get_players", response_model=List[UserInfo])
+async def get_players():
+    players = user_pool.get_players()
+    return [await player.to_user_info() for player in players]
+
+@router.get("/get_neutral", response_model=List[UserInfo])
+async def get_neutral():
+    neutral = user_pool.get_neutral()
+    return [await neutral.to_user_info() for neutral in neutral]
+
 @router.get("/collect_pool_xrp")
 async def collect_pool_xrp():
     return await user_pool.collect_pool_xrp()

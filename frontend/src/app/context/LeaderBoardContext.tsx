@@ -42,7 +42,7 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/user/to_results`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/userpool/to_results`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

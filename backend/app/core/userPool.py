@@ -85,12 +85,32 @@ class UserPool:
         else:
             logger.warning(f"User {username} not found")
 
+
+    def get_players(self) -> List[User]:
+        players = []
+        for username, session in self.sessions.items():
+            if username == "master":
+                continue  # ⛔️ on ignore l'utilisateur master
+            players.append(session.user)
+        return players
+
+    def get_neutral(self) -> List[User]:
+        neutral = []
+        for username, session in self.sessions.items():
+            if username == "master":
+                continue  # ⛔️ on ignore l'utilisateur master
+            #if not session.user.is_still_playing:
+            if session.user.last_result == -0:
+                neutral.append(session.user)
+        return neutral
+
     def get_losers(self) -> List[User]:
         losers = []
         for username, session in self.sessions.items():
             if username == "master":
                 continue  # ⛔️ on ignore l'utilisateur master
-            if not session.user.is_still_playing:
+            #if not session.user.is_still_playing:
+            if session.user.last_result == -1:
                 losers.append(session.user)
         return losers
 
@@ -122,7 +142,8 @@ class UserPool:
         for username, session in self.sessions.items():
             if username == "master":
                 continue  # ⛔️ on ignore l'utilisateur master
-            if session.user.is_still_playing:
+            #if session.user.is_still_playing:
+            if session.user.last_result == 1:
                 winners.append(session.user)
         return winners
 
@@ -130,22 +151,30 @@ class UserPool:
         tx_ids=[]
         winners = self.get_winners()
         master = self.get_master()
+
+
+        nb_winners = len(winners)
+
         if master is None is None:
             raise ValueError("Master wallet not initialized")
-        
+
         cash_pool = await master.get_balance() - 8
-        share_per_winner = cash_pool / len(winners) - XRP_FEES
-        logger.info(f"Cash pool: {cash_pool}, winners: {len(winners)}, Share per winner: {share_per_winner}")
+        
+        if nb_winners > 0 and cash_pool > XRP_FEES:
+            cash_pool = await master.get_balance() - 8
+            share_per_winner = cash_pool / nb_winners - XRP_FEES
+            logger.info(f"Cash pool: {cash_pool}, winners: {nb_winners}, Share per winner: {share_per_winner}")
 
-        for winner in winners:
-            logger.info(f"Dispatching {share_per_winner} XRP to {winner.username}")
-            winner_wallet_address = winner.wallet.address
-            tx_ids.append(await master.send_xrp(
-                    destination=winner_wallet_address,
-                    amount=share_per_winner
-                ))
+            for winner in winners:
+                logger.info(f"Dispatching {share_per_winner} XRP to {winner.username}")
+                winner_wallet_address = winner.wallet.address
+                tx_ids.append(await master.send_xrp(
+                        destination=winner_wallet_address,
+                        amount=share_per_winner
+                    ))
 
-        return {"message": "XRP dispatched", "cash_pool": cash_pool, "tx_ids": tx_ids}
+            return {"message": "XRP dispatched", "cash_pool": cash_pool, "tx_ids": tx_ids}
+        return {"message": "No winners or cash pool is too low"}
 
 
 

@@ -10,8 +10,8 @@ from app.routes.hume import TTSRequest, synthesize_tts_json
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-SPEED_OF_SPEECH = 0.5
-DESCRIPTION_OF_SPEECH = "Metallic neutral voice, talking fast"
+SPEED_OF_SPEECH = 0.2
+DESCRIPTION_OF_SPEECH = "I am a man, with a metallic neutral voice and I am talking extremely fast"
 
 async def speak_and_broadcast(type_broadcast: str, value: str, include_anonymous: bool = True):
     try:
@@ -92,6 +92,11 @@ async def start_game(request: Request):
 async def start_round(request: Request):
     logger.info("⏳ Starting game round...")
 
+    round_number = request.app.state.round_number
+
+    await speak_and_broadcast(type_broadcast="announcement", value=f"Round {round_number}!")
+    await asyncio.sleep(SPEED_OF_SPEECH)
+
     # Étape 1 : introduction vocale
     await speak_and_broadcast(type_broadcast="announcement", value="Attention! Game is starting!")
     await asyncio.sleep(SPEED_OF_SPEECH)
@@ -136,5 +141,7 @@ async def round_reset(request: Request):
     )
 
     return {"status": "ok", "message": "Reset broadcast sent"}
+
+
  
 

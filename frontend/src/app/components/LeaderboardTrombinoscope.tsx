@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLeaderboard, LeaderboardEntry } from "@/app/context/LeaderBoardContext";
+import Image from "next/image";
 
 const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_URL;
 
@@ -23,7 +24,7 @@ const getPlayerBorder = (result: number): string => {
 };
 
 function PlayerCard({ player, onClick }: { player: LeaderboardEntry; onClick: () => void }) {
-  const [showAlt, setShowAlt] = useState(false);
+  const [, setShowAlt] = useState(false);
 
   return (
     <div
@@ -40,11 +41,10 @@ function PlayerCard({ player, onClick }: { player: LeaderboardEntry; onClick: ()
           alt={`photo de ${player.username}`}
           className="w-full h-32 object-cover rounded"
         />
-
       </div>
       <p className="font-medium text-black mt-1 flex items-center justify-center gap-1">
         {player.balance}
-        <img src={XRP_LOGO_URL} alt="XRP" className="w-4 h-4" />
+        <Image src={XRP_LOGO_URL} alt="XRP" width={16} height={16} />
       </p>
     </div>
   );

@@ -1,5 +1,7 @@
+import type { NormalizedLandmarkList } from "@mediapipe/hands";
+
 export default function detectGesture(
-  landmarks: any[]
+  landmarks: NormalizedLandmarkList
 ): "pierre" | "feuille" | "ciseau" | "inconnu" {
   try {
     const isFingerUp = (tipIdx: number, pipIdx: number) =>

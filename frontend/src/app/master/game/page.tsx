@@ -5,7 +5,6 @@ import { startRound } from '@/lib/api/game/startRound'
 import { useRouter } from 'next/navigation';
 import { IncrementRound } from '@/lib/api/game/incrementRound';
 import { getRound } from '@/lib/api/game/getRound';
-import { speak } from '@/lib/ai/sounds/speak';
 
 export default function GamePage() {
     const [message, setMessage] = useState<{ type: string, value: string | number } | null>(null);
@@ -103,12 +102,6 @@ export default function GamePage() {
         try {
             setIsPlaying(true);
             setHasPlayed(false);
-
-            //await speak("Attention! Game is starting !", "Metallic neutral voice");
-            //await new Promise(resolve => setTimeout(resolve, 2500));
-
-            //await speak("Be ready!", "Metallic neutral voice");
-            //await new Promise(resolve => setTimeout(resolve, 1500));
 
             await IncrementRound();
             const round = await getRound();

@@ -40,7 +40,7 @@ export default function RegisterPage() {
         if (data.type === "countdown") {
           setGameStarted(true);
         }
-      } catch (err) {
+      } catch {
         console.error("Invalid JSON received:", event.data);
       }
     };
@@ -71,7 +71,7 @@ export default function RegisterPage() {
             }, 1000);
           }
         }
-      } catch (err) {
+      } catch {
         console.error("Invalid JSON received:", event.data);
       }
     };
@@ -81,7 +81,7 @@ export default function RegisterPage() {
     socket.onclose = () => console.log("WebSocket disconnected (user)");
 
     return () => socket.close();
-  }, [registered]);
+  }, [registered, username, router]);
 
   const handleRegister = async () => {
     setClicked(true);

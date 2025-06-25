@@ -1,13 +1,13 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback, Suspense } from "react";
 import setupCameraAndHands from "@/lib/ai/video/useHandDetection";
 import { useSearchParams } from "next/navigation";
 import { getPlayer } from "@/lib/api/player/getPlayer";
 import { getRound } from "@/lib/api/game/getRound";
 import { useRouter } from "next/navigation";
 
-export default function GamePage() {
+function GamePageContent() {
   const XRP_LOGO_URL = "/xrp-logo.svg";
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -18,10 +18,9 @@ export default function GamePage() {
   const searchParams = useSearchParams();
   const usernameParam = searchParams.get("username");
 
-  const [countdown, setCountdown] = useState<string | null>(null);
+  const [countdown] = useState<string | null>(null);
   const [isWinner, setIsWinner] = useState<boolean | null>(null);
   const isWinnerRef = useRef<boolean | null>(null);
-  const [roundNumber, setRoundNumber] = useState(0);
   const [myGesture, setMyGesture] = useState<"pierre" | "feuille" | "ciseau" | null>(null);
   const [masterGestureNum, setMasterGestureNum] = useState<number | null>(null);
   const [myGestureNum, setMyGestureNum] = useState<number | null>(null);
@@ -34,7 +33,6 @@ export default function GamePage() {
   const [showResultEmoji, setShowResultEmoji] = useState(false);
   const [resultEmoji, setResultEmoji] = useState<string | null>(null);
 
-
   const [playerInfo, setPlayerInfo] = useState<null | {
     username: string;
     wallet: {
@@ -46,9 +44,23 @@ export default function GamePage() {
 
   const router = useRouter();
 
+  function captureImageFromCanvas(canvas: HTMLCanvasElement): string {
+    return canvas.toDataURL("image/jpeg");
+  }
+
+  function computeResult(me: number, opponent: number): number {
+    if (me === opponent) return 0;
+    if ((me - opponent + 3) % 3 === 1) return 1;
+    return -1;
+  }
+
+  const hasWin = useCallback((me: number, opponent: number): boolean => {
+    return computeResult(me, opponent) === 1 || computeResult(me, opponent) === 0;
+  }, []);
+
   async function resizeBase64Image(base64: string, maxWidth = 30, maxHeight = 30): Promise<string> {
     return new Promise((resolve, reject) => {
-      const img = new Image();
+      const img = document.createElement('img');
       img.onload = function () {
         const canvas = document.createElement('canvas');
   
@@ -84,7 +96,6 @@ export default function GamePage() {
       img.src = base64;
     });
   }
-  
 
   function getEmojiFromNumber(num: number): string | null {
     switch (num) {
@@ -140,6 +151,9 @@ export default function GamePage() {
 
         if (data.type === "broadcast_reset") {
           // Cacher les emojis via message du serveur
+          console.log("broadcast_reset received");
+          console.log("Closing connection");
+
           setEmojiVisible(false);
           setTimeout(() => setShowEmoji(false), 1000);
           setShowResultEmoji(false);
@@ -217,7 +231,7 @@ export default function GamePage() {
           setEmojiVisible(true);
         }, 10);
 
-        // Affiche l’emoji de résultat
+        // Affiche l'emoji de résultat
         setResultEmoji(win ? "✅" : "❌");
         setShowResultEmoji(true);
 
@@ -236,7 +250,7 @@ export default function GamePage() {
 
         console.log("JSON Data :", json_data);
         socket.send(JSON.stringify(json_data));
-      } catch (err) {
+      } catch {
         console.error("Erreur parsing JSON reçu :", event.data);
       }
     };
@@ -244,21 +258,7 @@ export default function GamePage() {
     return () => {
       socket.close();
     };
-  }, [playerInfo, roundNumber]);
-
-  function captureImageFromCanvas(canvas: HTMLCanvasElement): string {
-    return canvas.toDataURL("image/jpeg");
-  }
-
-  function computeResult(me: number, opponent: number): number {
-    if (me === opponent) return 0;
-    if ((me - opponent + 3) % 3 === 1) return 1;
-    return -1;
-  }
-
-  function hasWin(me: number, opponent: number): boolean {
-    return computeResult(me, opponent) === 1 || computeResult(me, opponent) === 0;
-  }
+  }, [playerInfo, router, hasWin]);
 
   return (
     <div
@@ -365,5 +365,13 @@ export default function GamePage() {
       <div><strong>Master Result :</strong> {masterGestureNum}</div>
       <div><strong>Win :</strong> {isWinner === null ? "En attente..." : isWinner ? "Oui" : "Non"}</div>
     </div>
+  );
+}
+
+export default function GamePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GamePageContent />
+    </Suspense>
   );
 }

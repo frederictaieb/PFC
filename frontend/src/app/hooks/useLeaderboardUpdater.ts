@@ -16,5 +16,5 @@ export function useLeaderboardUpdater() {
     }
 
     fetchData();
-  }, [state.round]);
+  }, [state.round, dispatch]);
 }

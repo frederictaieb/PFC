@@ -1,4 +1,8 @@
+//useHandDetection.ts
+
+
 import drawLandmarksAndGesture from "./drawLandmarksAndGesture";
+import type { Results } from "@mediapipe/hands";
 
 export default async function setupCameraAndHands(
   videoElement: HTMLVideoElement,
@@ -26,7 +30,7 @@ export default async function setupCameraAndHands(
     minTrackingConfidence: 0.5,
   });
 
-  hands.onResults((results: any) => {
+  hands.onResults((results: Results) => {
     const gesture = drawLandmarksAndGesture(
       ctx,
       results,

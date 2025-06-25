@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation';
 import { useLeaderboard } from "@/app/context/LeaderBoardContext";
-import { useLeaderboardUpdater } from "@/app/hooks/useLeaderboardUpdater";
 import LeaderboardTrombinoscope from "@/app/components/LeaderboardTrombinoscope";
 
 
@@ -46,7 +45,6 @@ const handleClose = () => {
 
   // Get Master balance
   if (losers.length > 0 && winners.length > 0) {
-    let share = 0;
     fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/master/get_master_balance`, {
       method: "GET",
     })
@@ -76,6 +74,7 @@ const handleClose = () => {
       });
   }
 
+  
   // Reset the round
   try {
     fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round_reset`, {

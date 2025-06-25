@@ -1,11 +1,26 @@
+import type { Results, NormalizedLandmarkList } from "@mediapipe/hands";
 import detectGesture from "./detectGesture";
+
+// Typage précis des fonctions de dessin
+type DrawConnectorsFn = (
+  ctx: CanvasRenderingContext2D,
+  landmarks: NormalizedLandmarkList,
+  connections: Array<[number, number]>,
+  style?: { color?: string; lineWidth?: number }
+) => void;
+
+type DrawLandmarksFn = (
+  ctx: CanvasRenderingContext2D,
+  landmarks: NormalizedLandmarkList,
+  style?: { color?: string; radius?: number }
+) => void;
 
 export default function drawLandmarksAndGesture(
   ctx: CanvasRenderingContext2D,
-  results: any,
-  HAND_CONNECTIONS: any,
-  drawConnectors: any,
-  drawLandmarks: any
+  results: Results,
+  HAND_CONNECTIONS: Array<[number, number]>,
+  drawConnectors: DrawConnectorsFn,
+  drawLandmarks: DrawLandmarksFn
 ): "pierre" | "feuille" | "ciseau" | "inconnu" | null {
   const canvas = ctx.canvas;
   let gestureDetected: "pierre" | "feuille" | "ciseau" | "inconnu" | null = null;
@@ -26,7 +41,7 @@ export default function drawLandmarksAndGesture(
     }
   }
 
-  ctx.restore(); // ← orientation normale
+  ctx.restore();
 
   if (gestureDetected) {
     const emojiMap: Record<string, string> = {
@@ -41,8 +56,6 @@ export default function drawLandmarksAndGesture(
 
     ctx.textAlign = "right";
     ctx.fillStyle = "#000000";
-
-    // Emoji en haut à droite
     ctx.font = "64px serif";
     ctx.fillText(emoji, canvas.width - padding, 60);
   }

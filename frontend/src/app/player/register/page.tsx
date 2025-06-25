@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { checkGameStatus } from "@/api/game/checkGameStatus";
-import { registerPlayer } from "@/api/player";
+import { checkGameStatus } from "@/lib/api/game/checkGameStatus";
+import { registerPlayer } from "@/lib/api/player/registerPlayer";
 import { v4 as uuidv4 } from "uuid";
 
 export default function RegisterPage() {
@@ -26,56 +26,60 @@ export default function RegisterPage() {
     fetchStatus();
   }, []);
 
+  // Socket anonyme (avant enregistrement)
   useEffect(() => {
+    if (registered) return;
 
-    let socket: WebSocket;
-    if (!registered) {
-      const anonId = uuidRef.current;
-      socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/anon/${anonId}`);
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === "countdown") {
-            setGameStarted(true);
-          }
-        } catch (err) {
-          console.error("Invalid JSON received:", event.data);
-        }
-      };
-    } else {
-      socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/${username}`);
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-
-          if (data.type === "start_game") {
-            router.push("/game");
-          }
-
-          if (data.type === "countdown" && ["1", "2", "3", "GO"].includes(data.value)) {
-            setCountdown(data.value);
-            if (data.value === "GO") {
-              
-              setTimeout(
-                () => {
-                  localStorage.setItem("user", JSON.stringify(user));
-                  router.push("/player/game")
-                }, 
-                1000
-              );
-            }
-          }
-        } catch (err) {
-          console.error("Invalid JSON received:", event.data);
-        }
-      };
-    }
+    const anonId = uuidRef.current;
+    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/anon/${anonId}`);
 
     socketRef.current = socket;
 
-    socket.onopen = () => console.log("WebSocket connected");
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "countdown") {
+          setGameStarted(true);
+        }
+      } catch {
+        console.error("Invalid JSON received:", event.data);
+      }
+    };
+
+    socket.onopen = () => console.log("WebSocket connected (anon)");
     socket.onerror = (e) => console.error("WebSocket error", e);
-    socket.onclose = () => console.log("WebSocket disconnected");
+    socket.onclose = () => console.log("WebSocket disconnected (anon)");
+
+    return () => socket.close();
+  }, [registered]);
+
+  // Socket joueur (après enregistrement)
+  useEffect(() => {
+    if (!registered || !username) return;
+
+    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/${username}`);
+    socketRef.current = socket;
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "countdown" && ["1", "2", "3", "GO"].includes(data.value)) {
+          setCountdown(data.value);
+          if (data.value === "GO") {
+            setTimeout(() => {
+              router.push(`/player/game?username=${encodeURIComponent(username)}`);
+            }, 1000);
+          }
+        }
+      } catch {
+        console.error("Invalid JSON received:", event.data);
+      }
+    };
+
+    socket.onopen = () => console.log("WebSocket connected (user)");
+    socket.onerror = (e) => console.error("WebSocket error", e);
+    socket.onclose = () => console.log("WebSocket disconnected (user)");
 
     return () => socket.close();
   }, [registered, username, router]);
@@ -109,7 +113,10 @@ export default function RegisterPage() {
         <button
           disabled={clicked || gameStarted || countdown !== null}
           onClick={handleRegister}
-          className="px-8 py-4 rounded-xl text-lg w-64 text-center font-bold text-white bg-blue-600 hover:bg-blue-700 shadow transition-all disabled:opacity-50"
+          className={`px-8 py-4 rounded-xl text-lg w-64 text-center font-bold text-white shadow transition-all disabled:opacity-50
+            ${registered && !countdown ? "bg-orange-300 hover:bg-orange-400" :
+              gameStarted || countdown ? "bg-red-400" :
+              "bg-blue-600 hover:bg-blue-700"}`}
         >
           {countdown || (registered ? "Waiting..." : gameStarted ? "Game in progress" : "Register")}
         </button>

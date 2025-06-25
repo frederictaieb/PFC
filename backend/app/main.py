@@ -1,9 +1,10 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import user, game, master
+from app.routes import user, game, master, hume, userpool
 from app.routes.websocket import websocket_manager
 from app.utils.logger import logger_init
 import logging
+
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,15 +22,19 @@ app.add_middleware(
 # Sockets for not registered users
 app.state.waiting_sockets = set()
 
+
 # State of the game initialized false at startup
 @app.on_event("startup")
 def setup_game_state():
     app.state.game_started = False
+    app.state.round_number = 0
 
 # Routes API
 app.include_router(master.router, prefix="/api/master", tags=["Master"])
 app.include_router(user.router, prefix="/api/user", tags=["User"])
+app.include_router(userpool.router, prefix="/api/userpool", tags=["UserPool"])
 app.include_router(game.router, prefix="/api/game", tags=["Game"])
+app.include_router(hume.router, prefix="/api/hume", tags=["Hume"])
 
 
 #@app.websocket("/ws/{username}")

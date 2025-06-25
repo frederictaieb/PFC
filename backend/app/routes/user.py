@@ -3,6 +3,9 @@ from app.models.user import User
 from app.core.userPool import user_pool
 from app.services.xrp.wallet import get_xrp_balance
 from typing import List
+from app.models.user import LeaderboardEntry
+from app.models.user import HasPlayedRequest
+
 
 import asyncio
 
@@ -22,6 +25,9 @@ async def helloworld():
     return {"message": "Hello from FastAPI!"}
 
 class RegisterPayload(BaseModel):
+    username: str
+
+class EliminateUserPayload(BaseModel):
     username: str
 
 @router.post("/register_user")
@@ -54,47 +60,43 @@ async def get_user(username: str):
     if not session:
         raise HTTPException(status_code=404, detail="User not found")
 
-    address = session.user.wallet.classic_address
+    #address = session.user.wallet.classic_address
 
-    # Même si c'est un seul appel, on peut l'harmoniser :
-    [balance] = await asyncio.gather(get_xrp_balance(address))
+    # Même si c’est un seul appel, on peut l’harmoniser :
+    #[balance] = await asyncio.gather(get_xrp_balance(address))
 
-    return UserInfo(
-        username=session.user.username,
-        wallet=WalletInfo(
-            address=address,
-            public_key=session.user.wallet.public_key,
-            balance=balance
-        ),
-        connected=session.is_connected(),
-        ipfs_images=session.user.get_all_images()
-    )
+    return await session.user.to_user_info()
 
 @router.get("/get_users", response_model=List[UserInfo])
 async def get_users():
     sessions = list(user_pool.sessions.values())
 
-    # Étape 1 : préparer les adresses
-    addresses = [s.user.wallet.classic_address for s in sessions]
-
-    # Étape 2 : récupérer toutes les balances en parallèle
-    balances = await asyncio.gather(*[
-        get_xrp_balance(address) for address in addresses
+    # ✅ Utilise gather pour appeler to_user_info() en parallèle
+    user_infos = await asyncio.gather(*[
+        session.user.to_user_info() for session in sessions
     ])
 
-    # Étape 3 : construire la réponse
-    result = []
+    return user_infos
 
-    for session, balance in zip(sessions, balances):
-        result.append(UserInfo(
-            username=session.user.username,
-            wallet=WalletInfo(
-                address=session.user.wallet.classic_address,
-                public_key=session.user.wallet.public_key,
-                balance=balance
-            ),
-            connected=session.is_connected(),
-            ipfs_images=session.user.get_all_images()
-        ))
+@router.post("/eliminate_user")
+async def eliminate_user(payload: EliminateUserPayload):
+    username = payload.username
+    user_pool.eliminate_user(username)
+    logger.info(f"User {username} eliminated")
+    return {"message": "User eliminated", "user": username}
 
-    return result
+@router.post("/has_played")
+async def has_played(payload: HasPlayedRequest):
+    session = user_pool.get(payload.username)
+    if not session:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    session.user.has_played(
+        payload.result,
+        payload.round_number,
+        payload.image_path,
+        payload.thumbnail_path,
+        payload.is_still_playing
+    )
+
+    return {"success": True}

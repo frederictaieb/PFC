@@ -75,8 +75,9 @@ class User(Client):
         return self.wallet.classic_address
 
     async def get_balance(self) -> float:
-        balance = await get_xrp_balance(self.wallet.address) - float(os.getenv("XRP_RESERVE"))
-        return balance.xrp_balance
+        reserve = Decimal(os.getenv("XRP_RESERVE", "2"))
+        balance = await get_xrp_balance(self.wallet.address)
+        return float(balance - reserve)
 
     def add_ipfs_image(self, image_path: str):
         # 1. Uploader l'image vers IPFS
@@ -124,7 +125,7 @@ class User(Client):
         )
 
     async def to_user_info(self) -> UserInfo:
-        balance = await get_xrp_balance(self.wallet.address)
+        balance = await self.get_balance()
         return UserInfo(
             username=self.username,
             wallet=WalletInfo(

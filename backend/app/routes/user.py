@@ -90,13 +90,15 @@ async def to_results():
         )
 
         last_evi = float(last_image.evi) if last_image and last_image.evi is not None else 0.0
-        last_photo = last_image.ipfs_cid if last_image else ""
+        last_photo = last_image.image_cid if last_image else ""
+        last_thumbnail = last_image.thumbnail_cid if last_image else ""
 
         results.append(LeaderboardEntry(
             username=user_info.username,
             result=last_result,
             last_evi=last_evi,
             last_photo=last_photo,
+            last_thumbnail=last_thumbnail,
             balance=float(user_info.wallet.balance or 0),
         ))
 

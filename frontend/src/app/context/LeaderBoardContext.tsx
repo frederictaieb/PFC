@@ -7,6 +7,7 @@ export type LeaderboardEntry = {
   result: number;
   last_evi: number
   last_photo: string;
+  last_thumbnail: string;
   balance: number;
 };
 

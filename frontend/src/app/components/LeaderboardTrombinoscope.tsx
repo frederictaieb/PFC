@@ -35,10 +35,12 @@ function PlayerCard({ player, onClick }: { player: LeaderboardEntry; onClick: ()
       <h3 className="font-semibold text-lg mb-2 text-black">{player.username.charAt(0).toUpperCase() + player.username.slice(1)}</h3>
       <div className="relative">
         <img
-          src={ipfsToUrl(player.last_photo)}
+          loading="lazy"
+          src={ipfsToUrl(player.last_thumbnail)}
           alt={`photo de ${player.username}`}
           className="w-full h-32 object-cover rounded"
         />
+
       </div>
       <p className="font-medium text-black mt-1 flex items-center justify-center gap-1">
         {player.balance}

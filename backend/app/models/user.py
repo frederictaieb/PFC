@@ -32,7 +32,8 @@ class WalletInfo(BaseModel):
 # ✅ Modèle d’image avec validation automatique
 class ImageData(BaseModel):
     round: int
-    ipfs_cid: str
+    image_cid: str
+    thumbnail_cid: str
     evi: Optional[float] = None
 
 class LeaderboardEntry(BaseModel):
@@ -40,6 +41,7 @@ class LeaderboardEntry(BaseModel):
     result: int
     last_evi: float
     last_photo: str
+    last_thumbnail: str
     balance: float
 
 # ✅ Modèle utilisateur exportable (si nécessaire dans API ou front)
@@ -79,13 +81,19 @@ class User(Client):
         balance = await get_xrp_balance(self.wallet.address)
         return float(balance - reserve)
 
-    def add_ipfs_image(self, image_path: str):
+    def add_ipfs_images(self, image_path: str, thumbnail_path: str):
         # 1. Uploader l'image vers IPFS
         ipfs_url = os.getenv("IPFS_URL")
+
         logger.info(f"Uploading image {image_path} to IPFS {ipfs_url}")
-        ipfs_cid = upload_file(ipfs_url, image_path)
-        logger.info(f"upload_file returned: {ipfs_cid} (type: {type(ipfs_cid)})")
-        logger.info(f"IPFS CID: {ipfs_cid}")
+        image_cid = upload_file(ipfs_url, image_path)
+        logger.info(f"upload_file returned: {image_cid} (type: {type(image_cid)})")
+        logger.info(f"IPFS CID: {image_cid}")
+
+        logger.info(f"Uploading thumbnail {thumbnail_path} to IPFS {ipfs_url}")
+        thumbnail_cid = upload_file(ipfs_url, thumbnail_path)
+        logger.info(f"upload_file returned: {thumbnail_cid} (type: {type(thumbnail_cid)})")
+        logger.info(f"IPFS CID: {thumbnail_cid}")
 
         # 2. Score émotionnel simulé (à remplacer plus tard par une vraie IA)
         evi = compute_emotion_score(image_path, method="deepface")
@@ -97,8 +105,8 @@ class User(Client):
         logger.info(f"Current round: {round_num}")
         
         # 4. Créer l’objet ImageData
-        logger.info(f"Creating image data for round {round_num} with IPFS CID {ipfs_cid} and EVI {evi}")
-        image_data = ImageData(round=round_num, ipfs_cid=ipfs_cid, evi=evi)
+        logger.info(f"Creating image data for round {round_num} with IPFS CID {image_cid} and EVI {evi}")
+        image_data = ImageData(round=round_num, image_cid=image_cid, thumbnail_cid=thumbnail_cid, evi=evi)
         logger.info(f"Image data created: {image_data}")
 
         # 5. Ajouter à la liste

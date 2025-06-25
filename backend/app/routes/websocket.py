@@ -68,7 +68,10 @@ async def websocket_manager(websocket: WebSocket, username: str):
                     logger.info(f"Result: {result}")
                     
                     image = data["value"]["image"]
-                    logger.info(f"Image: {image}")
+                    logger.info(f"Image base64 received ({len(image)} characters)")
+
+                    thumbnail = data["value"]["thumbnail"]
+                    logger.info(f"Thumbnail base64 received ({len(thumbnail)} characters)")
 
                     try:
                         session = user_pool.get(username)
@@ -83,12 +86,19 @@ async def websocket_manager(websocket: WebSocket, username: str):
                             logger.info(f"Last result: {session.user.last_result}") 
                             session.user.last_round = round_number
                             logger.info(f"Last round: {session.user.last_round}")
-                            logger.info(f"Adding image to user {username}")
+
+                            logger.info(f"Adding images to user {username}")
                             image_path = base64_to_tmp(image)
                             logger.info(f"Image path: {image_path}")
-                            session.user.add_ipfs_image(image_path)
-                            logger.info(f"Image added to user {username}")
+
+                            thumbnail_path = base64_to_tmp(thumbnail)
+                            logger.info(f"Thumbnail path: {thumbnail_path}")
+
+                            session.user.add_ipfs_images(image_path, thumbnail_path)
+                            logger.info(f"Images added to user {username}")
+
                             os.remove(image_path)
+                            os.remove(thumbnail_path)
 
                             if not hasWin:
                                 logger.info(f"User {username} has lost")
@@ -115,6 +125,7 @@ async def websocket_manager(websocket: WebSocket, username: str):
                             "round": round_number,
                             "hasWin": hasWin,
                             "image": image,
+                            "thumbnail": thumbnail,
                         }
                     })
 

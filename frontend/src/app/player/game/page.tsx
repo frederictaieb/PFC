@@ -46,6 +46,46 @@ export default function GamePage() {
 
   const router = useRouter();
 
+  async function resizeBase64Image(base64: string, maxWidth = 30, maxHeight = 30): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+  
+        let width = img.width;
+        let height = img.height;
+  
+        // Redimensionner tout en gardant le ratio
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.floor((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.floor((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+  
+        canvas.width = width;
+        canvas.height = height;
+  
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject("Impossible de créer le contexte canvas");
+  
+        ctx.drawImage(img, 0, 0, width, height);
+        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7); // compression JPEG
+  
+        resolve(resizedBase64);
+      };
+  
+      img.onerror = reject;
+      img.src = base64;
+    });
+  }
+  
+
   function getEmojiFromNumber(num: number): string | null {
     switch (num) {
       case 0: return "🪨";
@@ -166,6 +206,7 @@ export default function GamePage() {
         }
 
         const imageBase64 = captureImageFromCanvas(canvasRef.current);
+        const thumbnailBase64 = await resizeBase64Image(imageBase64);
 
         const emojiToShow = getEmojiFromNumber(masterNum);
         setEmoji(emojiToShow);
@@ -189,6 +230,7 @@ export default function GamePage() {
             round: round,
             hasWin: win,
             image: imageBase64,
+            thumbnail: thumbnailBase64,
           },
         };
 

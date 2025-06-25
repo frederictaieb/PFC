@@ -114,7 +114,16 @@ export default function GamePage() {
         }
     };
 
-    const handleLeaderboard = () => {
+    const handleLeaderboard = async () => {
+
+        await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/userpool/collect_pool_xrp`)
+        .then(res => res.json())
+        .then(data => console.log(data));
+
+        await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/userpool/dispatch_pool_xrp`)
+        .then(res => res.json())
+        .then(data => console.log(data))
+
         router.push('/master/game/results');
     };
 

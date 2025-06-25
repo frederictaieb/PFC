@@ -10,82 +10,83 @@ import { speak } from '@/lib/ai/sounds/speak';
 export default function GamePage() {
     const [message, setMessage] = useState<{ type: string, value: string | number } | null>(null);
     const [showEmoji, setShowEmoji] = useState(false);
-    const [isPlaying, setIsPlaying] = useState(false); // 🔹 nouvel état
+    const [isPlaying, setIsPlaying] = useState(false);
     const [hasPlayed, setHasPlayed] = useState(false);
     const [roundNumber, setRoundNumber] = useState(0);
     const router = useRouter();
 
     useEffect(() => {
-
+        // Charger le numéro du round actuel
         fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round`)
-        .then(res => res.json())
-        .then(data => setRoundNumber(data.round));
+            .then(res => res.json())
+            .then(data => setRoundNumber(data.round));
 
-
-
+        // WebSocket
         const socket = new WebSocket(`${process.env.NEXT_PUBLIC_FASTAPI_WS}/ws/master`);
-        socket.onmessage = (event) => {
+
+        socket.onmessage = async (event) => {
             const data = JSON.parse(event.data);
             console.log(data);
 
             if (data.type === "countdown") {
-                speak(data.value, "Metallic neutral voice");
+                await speak(data.value, "Metallic neutral voice");
                 setMessage(data);
                 setShowEmoji(false);
-               
-        
             } else if (data.type === "result") {
-                if (data.value === 0) {
-                    speak("Rock", "Metallic neutral voice");
-                } else if (data.value === 1) {
-                    speak("Paper", "Metallic neutral voice");
-                } else if (data.value === 2) {
-                    speak("Scissors", "Metallic neutral voice");
-                }
-                
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 setMessage(data);
                 setShowEmoji(false);
 
-                // lancer le fade-in
                 setTimeout(() => {
+                    if (data.value === 0) speak("Rock", "Metallic neutral voice");
+                    if (data.value === 1) speak("Paper", "Metallic neutral voice");
+                    if (data.value === 2) speak("Scissors", "Metallic neutral voice");
+
                     setShowEmoji(true);
 
-                    // désactiver isPlaying après la transition (3s)
                     setTimeout(() => {
                         setIsPlaying(false);
                     }, 3000);
                 }, 10);
-                setHasPlayed(true);
-            } else if (data.type === "player_result" && data.value) {
-                console.log("Résultat du joueur :", data.value.username);
-                console.log("Geste du joueur :", data.value.gesture);
-                console.log("Résultat du joueur :", data.value.result);
-                console.log("Round :", data.value.round);
-                console.log("Victoire :", data.value.hasWin);
-                console.log("Image :", data.value.image);
-            } else if (data.type === "player_result") {
-                console.warn("Message player_result mal formé :", data);
-            }
 
+                setHasPlayed(true);
+            }
         };
+
+        return () => {
+            socket.close();
+        };
+    }, []);
+
+    useEffect(() => {
+        const resetState = () => {
+            setHasPlayed(false);
+            setIsPlaying(false);
+            setMessage(null);
+            setShowEmoji(false);
+        };
+
+        resetState();
+
+        window.addEventListener('focus', resetState);
+        return () => window.removeEventListener('focus', resetState);
     }, []);
 
     const handleStartRound = async () => {
         try {
-            speak("Attention! Game is starting !", "Metallic neutral voice");
+            setIsPlaying(true);
+            setHasPlayed(false);
+
+            await speak("Attention! Game is starting !", "Metallic neutral voice");
             await new Promise(resolve => setTimeout(resolve, 2500));
-            speak("Be ready!", "Metallic neutral voice");
+
+            await speak("Be ready!", "Metallic neutral voice");
             await new Promise(resolve => setTimeout(resolve, 1500));
 
-            setHasPlayed(false);
-            setIsPlaying(true);
-            
             await IncrementRound();
-            const round = await getRound();  
-            if (typeof round === "number") {
-                setRoundNumber(round);
-            }
-    
+            const round = await getRound();
+            if (typeof round === "number") setRoundNumber(round);
+
             await startRound();
         } catch (err) {
             console.error(err);
@@ -93,7 +94,7 @@ export default function GamePage() {
         }
     };
 
-    const handleLeaderboard = async () => {
+    const handleLeaderboard = () => {
         router.push('/master/game/results');
     };
 
@@ -112,39 +113,37 @@ export default function GamePage() {
     return (
         <div className="flex flex-col items-center pt-10">
             <div className="flex flex-col items-center">
-            <h1 className="text-4xl font-bold">Round {roundNumber}</h1>
-            <div className="h-64 w-64 flex items-center justify-center text-9xl font-bold border border-black border-[1px] rounded-xl">
-                
-                {message?.type === "result" && (
-                    <div
-                        className={`mb-4 transition-opacity duration-[3000ms] ease-in-out ${
-                            showEmoji ? 'opacity-100' : 'opacity-0'
-                        }`}
-                    >
-                        {getEmoji()}
-                    </div>
-                )}
+                <h1 className="text-4xl font-bold">Round {roundNumber}</h1>
+                <div className="h-64 w-64 flex items-center justify-center text-9xl font-bold border border-black border-[1px] rounded-xl">
+                    {message?.type === "result" && (
+                        <div
+                            className={`mb-4 transition-opacity duration-[3000ms] ease-in-out ${
+                                showEmoji ? 'opacity-100' : 'opacity-0'
+                            }`}
+                        >
+                            {getEmoji()}
+                        </div>
+                    )}
+                    {message?.type === "countdown" && (
+                        <div id="countdown" className="text-9xl font-bold">
+                            {message.value}
+                        </div>
+                    )}
+                </div>
 
-                {message?.type === "countdown" && (
-                    <div id="countdown" className="text-9xl font-bold">
-                        {message.value}
-                    </div>
-                )}
-            </div>
+                <button 
+                    onClick={handleStartRound}
+                    disabled={isPlaying || hasPlayed}
+                    className="text-2xl mt-8 px-8 py-4 rounded-xl bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition-all disabled:opacity-50 w-64">
+                    Start
+                </button>
 
-            <button 
-                onClick={handleStartRound}
-                disabled={isPlaying} // 🔹 désactivation ici
-                className="text-2xl mt-8 px-8 py-4 rounded-xl bg-blue-600 text-white font-bold shadow hover:bg-blue-700 transition-all disabled:opacity-50 w-64">
-                Start
-            </button>
-    
-            {hasPlayed && <button 
-              onClick={handleLeaderboard}
-              disabled={isPlaying}
-              className="text-2xl mt-8 px-8 py-4 rounded-xl bg-green-600 text-white font-bold shadow hover:bg-green-700 transition-all disabled:opacity-50 w-64">
-              Scores
-            </button>}
+                <button 
+                    onClick={handleLeaderboard}
+                    disabled={!hasPlayed}
+                    className="text-2xl mt-8 px-8 py-4 rounded-xl bg-green-600 text-white font-bold shadow hover:bg-green-700 transition-all disabled:opacity-50 w-64">
+                    Scores
+                </button>
             </div>
         </div>
     );

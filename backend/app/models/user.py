@@ -28,7 +28,7 @@ dotenv.load_dotenv()
 class WalletInfo(BaseModel):
     address: str
     public_key: str
-    balance: float
+    balance: float = 0.0
 
 # ✅ Modèle d’image avec validation automatique
 class ImageData(BaseModel):

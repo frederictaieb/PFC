@@ -42,10 +42,11 @@ async def register_user(payload: RegisterPayload):
         wallet=WalletInfo(
             address=session.user.wallet.classic_address,
             public_key=session.user.wallet.public_key,
-            balance=None  # We'll get the balance later when needed
+            balance = 0.0  # We'll get the balance later when needed
         ),
-        connected=session.is_connected(),
-        ipfs_images=session.user.get_all_images()
+        connected = session.is_connected(),
+        ipfs_images = session.user.get_all_images(),
+        is_still_playing = session.user.is_still_playing
     )
     
     return {

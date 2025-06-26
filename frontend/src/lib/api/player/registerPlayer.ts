@@ -1,6 +1,4 @@
-export const registerPlayer = async (
-  username: string
-): Promise<{ success: boolean; user?: any; error?: string }> => {
+export const registerPlayer = async (username: string): Promise<{ success: boolean; error?: string }> => {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/user/register_user`, {
       method: "POST",
@@ -8,11 +6,10 @@ export const registerPlayer = async (
       body: JSON.stringify({ username }),
     });
 
-    const data = await res.json();
-
     if (res.ok) {
-      return { success: true, user: data.user };
+      return { success: true };
     } else {
+      const data = await res.json();
       return { success: false, error: data.detail || "Erreur inconnue" };
     }
   } catch (err) {

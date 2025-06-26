@@ -7,7 +7,7 @@ from app.services.xrp.wallet import get_xrp_balance
 from app.services.os.base64_to_tmp import base64_to_tmp
 import os
 
-from app.routes.hume import send_tts_to_master
+from app.services.ai.hume import send_tts_to_master
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -83,10 +83,13 @@ async def websocket_manager(websocket: WebSocket, username: str):
                             continue
 
                         logger.info(f"User {username} is still playing: {session.user.is_still_playing}")
+
                         if session.user:
                             logger.info(f"Updating last result and round for user {username}")
+                            
                             session.user.last_result = result
                             logger.info(f"Last result: {session.user.last_result}") 
+
                             session.user.last_round = round_number
                             logger.info(f"Last round: {session.user.last_round}")
 
@@ -143,7 +146,7 @@ async def websocket_manager(websocket: WebSocket, username: str):
     except WebSocketDisconnect:
         logger.info(f"User {username} disconnected from WebSocket")
 
-        if username.startswith("anon/"):
+        if username.startswith("anon-"):
             user_pool.remove_anonymous(websocket)
             logger.info(f"Anonymous socket {websocket} removed from pool")
 

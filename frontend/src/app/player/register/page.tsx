@@ -13,7 +13,6 @@ export default function RegisterPage() {
   const [clicked, setClicked] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [countdown, setCountdown] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
 
   const socketRef = useRef<WebSocket | null>(null);
   const uuidRef = useRef<string>(uuidv4());
@@ -87,11 +86,8 @@ export default function RegisterPage() {
   const handleRegister = async () => {
     setClicked(true);
     const result = await registerPlayer(username);
-  
-    if (result.success && result.user) {
-      console.log("User registered successfully:", result.user);
-      setUser(result.user);
-      localStorage.setItem("user", JSON.stringify(result.user));
+
+    if (result.success) {
       setRegistered(true);
     } else {
       alert(result.error);

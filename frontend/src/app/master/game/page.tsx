@@ -5,6 +5,7 @@ import { startRound } from '@/lib/api/game/startRound'
 import { useRouter } from 'next/navigation';
 import { IncrementRound } from '@/lib/api/game/incrementRound';
 import { getRound } from '@/lib/api/game/getRound';
+import { Howl } from 'howler';
 
 export default function GamePage() {
     const [message, setMessage] = useState<{ type: string, value: string | number } | null>(null);
@@ -13,6 +14,83 @@ export default function GamePage() {
     const [hasPlayed, setHasPlayed] = useState(false);
     const [roundNumber, setRoundNumber] = useState(0);
     const router = useRouter();
+
+    const sounds = {
+        // voice 1
+        /*
+        one_1: new Audio('/sounds/voice1/1.mp3'),
+        two_1: new Audio('/sounds/voice1/2.mp3'),
+        three_1: new Audio('/sounds/voice1/3.mp3'),
+        four_1: new Audio('/sounds/voice1/4.mp3'),
+        five_1: new Audio('/sounds/voice1/5.mp3'),
+        six_1: new Audio('/sounds/voice1/6.mp3'),
+        seven_1: new Audio('/sounds/voice1/7.mp3'),
+        eight_1: new Audio('/sounds/voice1/8.mp3'),
+        nine_1: new Audio('/sounds/voice1/9.mp3'),
+        ten_1: new Audio('/sounds/voice1/10.mp3'),
+        attention_1: new Audio('/sounds/voice1/attention.mp3'),
+        beready_1: new Audio('/sounds/voice1/beready.mp3'),
+        nextround_1: new Audio('/sounds/voice1/nextround.mp3'),
+        paper_1: new Audio('/sounds/voice1/paper.mp3'),
+        scissors_1: new Audio('/sounds/voice1/scissors.mp3'),
+        rock_1: new Audio('/sounds/voice1/rock.mp3'),
+        round_1: new Audio('/sounds/voice1/round.mp3'),
+
+        // voice 2
+        one_2: new Audio('/sounds/voice2/1.mp3'),
+        two_2: new Audio('/sounds/voice2/2.mp3'),
+        three_2: new Audio('/sounds/voice2/3.mp3'),
+        four_2: new Audio('/sounds/voice2/4.mp3'),
+        five_2: new Audio('/sounds/voice2/5.mp3'),
+        six_2: new Audio('/sounds/voice2/6.mp3'),
+        seven_2: new Audio('/sounds/voice2/7.mp3'),
+        eight_2: new Audio('/sounds/voice2/8.mp3'),
+        nine_2: new Audio('/sounds/voice2/9.mp3'),
+        ten_2: new Audio('/sounds/voice2/10.mp3'),
+        attention_2: new Audio('/sounds/voice2/attention.mp3'),
+        beready_2: new Audio('/sounds/voice2/beready.mp3'),
+        nextround_2: new Audio('/sounds/voice2/nextround.mp3'),
+        paper_2: new Audio('/sounds/voice2/paper.mp3'),
+        scissors_2: new Audio('/sounds/voice2/scissors.mp3'),
+        rock_2: new Audio('/sounds/voice2/rock.mp3'),
+        round_2: new Audio('/sounds/voice2/round.mp3'),
+        */
+        one_1: new Howl({ src: ['/sounds/voice1/1.mp3'] }),
+        two_1: new Howl({ src: ['/sounds/voice1/2.mp3'] }),
+        three_1: new Howl({ src: ['/sounds/voice1/3.mp3'] }),
+        four_1: new Howl({ src: ['/sounds/voice1/4.mp3'] }),
+        five_1: new Howl({ src: ['/sounds/voice1/5.mp3'] }),
+        six_1: new Howl({ src: ['/sounds/voice1/6.mp3'] }),
+        seven_1: new Howl({ src: ['/sounds/voice1/7.mp3'] }),
+        eight_1: new Howl({ src: ['/sounds/voice1/8.mp3'] }),
+        nine_1: new Howl({ src: ['/sounds/voice1/9.mp3'] }),
+        ten_1: new Howl({ src: ['/sounds/voice1/10.mp3'] }),
+        attention_1: new Howl({ src: ['/sounds/voice1/attention.mp3'] }),
+        beready_1: new Howl({ src: ['/sounds/voice1/beready.mp3'] }),
+        nextround_1: new Howl({ src: ['/sounds/voice1/nextround.mp3'] }),
+        paper_1: new Howl({ src: ['/sounds/voice1/paper.mp3'] }),
+        scissors_1: new Howl({ src: ['/sounds/voice1/scissors.mp3'] }),
+        rock_1: new Howl({ src: ['/sounds/voice1/rock.mp3'] }),
+
+        // voice 2
+        one_2: new Howl({ src: ['/sounds/voice2/1.mp3'] }),
+        two_2: new Howl({ src: ['/sounds/voice2/2.mp3'] }),
+        three_2: new Howl({ src: ['/sounds/voice2/3.mp3'] }),
+        four_2: new Howl({ src: ['/sounds/voice2/4.mp3'] }),
+        five_2: new Howl({ src: ['/sounds/voice2/5.mp3'] }),
+        six_2: new Howl({ src: ['/sounds/voice2/6.mp3'] }),
+        seven_2: new Howl({ src: ['/sounds/voice2/7.mp3'] }),
+        eight_2: new Howl({ src: ['/sounds/voice2/8.mp3'] }),
+        nine_2: new Howl({ src: ['/sounds/voice2/9.mp3'] }),
+        ten_2: new Howl({ src: ['/sounds/voice2/10.mp3'] }),
+        attention_2: new Howl({ src: ['/sounds/voice2/attention.mp3'] }),
+        beready_2: new Howl({ src: ['/sounds/voice2/beready.mp3'] }),
+        nextround_2: new Howl({ src: ['/sounds/voice2/nextround.mp3'] }),
+        paper_2: new Howl({ src: ['/sounds/voice2/paper.mp3'] }),
+        scissors_2: new Howl({ src: ['/sounds/voice2/scissors.mp3'] }),
+        rock_2: new Howl({ src: ['/sounds/voice2/rock.mp3'] }),
+        round_2: new Howl({ src: ['/sounds/voice2/round.mp3'] }),
+      };
 
     // Fonction utilitaire locale pour base64 → Blob
     function base64ToBlob(base64: string, mime = "audio/wav") {
@@ -36,31 +114,58 @@ export default function GamePage() {
         
             if (data.type === "announcement") {
                 console.log("announcement", data);
+                if (data.value.startsWith("Round")) {
+                    sounds.nextround_1.play();
+                } else if (data.value === "Attention! Game is starting!") {
+                    sounds.attention_1.play();
+                } else if (data.value === "Be ready!") {
+                    sounds.beready_1.play();
+                } 
+                /*
                 if (data.audio_base64) {
                     const audioBlob = base64ToBlob(data.audio_base64);
                     const audioUrl = URL.createObjectURL(audioBlob);
                     const audio = new Audio(audioUrl);
                     audio.play();
                 }
+                */
             } else if (data.type === "countdown") {
                 console.log("countdown", data);
+                if (data.value === "1") {
+                    sounds.one_1.play();
+                } else if (data.value === "2") {
+                    sounds.two_1.play();
+                } else if (data.value === "3") {
+                    sounds.three_1.play();
+                }
+
+                /*
                 if (data.audio_base64) {
                     const audioBlob = base64ToBlob(data.audio_base64);
                     const audioUrl = URL.createObjectURL(audioBlob);
                     const audio = new Audio(audioUrl);
                     audio.play();
                 }
+                */
                 setMessage(data);
                 setShowEmoji(false);
 
             } else if (data.type === "result") {
                 console.log("result", data);
+                if (data.value === "0") {
+                    sounds.rock_1.play();
+                } else if (data.value === "1") {
+                    sounds.paper_1.play();
+                } else if (data.value === "2") {
+                    sounds.scissors_1.play();
+                }
+                /*
                 if (data.audio_base64) {
                     const audioBlob = base64ToBlob(data.audio_base64);
                     const audioUrl = URL.createObjectURL(audioBlob);
                     const audio = new Audio(audioUrl);
                     audio.play();
-                }
+                }*/
                 setMessage(data);
                 setShowEmoji(false);
 

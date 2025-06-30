@@ -10,7 +10,7 @@ from app.routes.hume import TTSRequest, synthesize_tts_json
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-SPEED_OF_SPEECH = 0.2
+SPEED_OF_SPEECH = 1
 DESCRIPTION_OF_SPEECH = "I am a man, with a metallic neutral voice and I am talking extremely fast"
 
 async def speak_and_broadcast(type_broadcast: str, value: str, include_anonymous: bool = True):
@@ -25,14 +25,15 @@ async def speak_and_broadcast(type_broadcast: str, value: str, include_anonymous
             else:
                 words_to_speak = "Scissors"
 
-        req = TTSRequest(text=words_to_speak, description=DESCRIPTION_OF_SPEECH)
-        result = await synthesize_tts_json(req)  # appel direct de la fonction Python
-        audio_base64 = result["audio_base64"]    # accès direct au dict
+        #req = TTSRequest(text=words_to_speak, description=DESCRIPTION_OF_SPEECH)
+        #result = await synthesize_tts_json(req)  # appel direct de la fonction Python
+        #audio_base64 = result["audio_base64"]    # accès direct au dict
 
         await user_pool.broadcast({
             "type": type_broadcast,
             "value": value,
-            "audio_base64": audio_base64
+            #"audio_base64": audio_base64
+            "audio_base64": None
         }, include_anonymous=include_anonymous)
 
     except Exception as e:

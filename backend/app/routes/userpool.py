@@ -6,6 +6,7 @@ from app.services.xrp.wallet import get_xrp_balance
 from typing import List
 from app.models.user import LeaderboardEntry
 from app.models.user import HasPlayedRequest
+from app.models.leaderboard import LeaderboardResponse
 
 
 
@@ -87,3 +88,7 @@ async def to_results():
         ))
 
     return results
+
+@router.get("/leaderboard", response_model=LeaderboardResponse)
+async def get_leaderboard_endpoint():
+    return await user_pool.get_leaderboard()

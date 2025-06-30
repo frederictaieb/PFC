@@ -35,15 +35,18 @@ export default function Home() {
         }
     };
 
-    const handleStart = async () => {
+    const handleStart = async () => {   
         setRegistering(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/master/register_master`);
+            
+            const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/master/register_master`);       
             const data = await res.json();
             console.log(data);
             router.push('/master/start');
         } catch (err) {
+            alert("Wait for the master to register");
             console.error("Erreur lors de la création du master :", err);
+            setRegistering(false);
         }
     };
 

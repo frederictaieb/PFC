@@ -116,14 +116,17 @@ export default function GamePage() {
 
     const handleLeaderboard = async () => {
 
+        console.log("triggering collect_pool_xrp");
         await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/userpool/collect_pool_xrp`)
         .then(res => res.json())
         .then(data => console.log(data));
 
+        console.log("triggering collect_pool_xrp");
         await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/userpool/dispatch_pool_xrp`)
         .then(res => res.json())
         .then(data => console.log(data))
 
+        console.log("triggering collect_pool_xrp");
         router.push('/master/game/results');
     };
 

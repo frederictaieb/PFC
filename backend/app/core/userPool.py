@@ -155,7 +155,7 @@ class UserPool:
 
         nb_winners = len(winners)
 
-        if master is None is None:
+        if master is None:
             raise ValueError("Master wallet not initialized")
 
         cash_pool = await master.get_balance() - 8
@@ -176,19 +176,35 @@ class UserPool:
             return {"message": "XRP dispatched", "cash_pool": cash_pool, "tx_ids": tx_ids}
         return {"message": "No winners or cash pool is too low"}
 
+    
+    async def get_leaderboard(self):
+        winners = [await u.to_user_info() for u in self.get_winners()]
+        losers = [await u.to_user_info() for u in self.get_losers()]
+        neutrals = [await u.to_user_info() for u in self.get_neutral()]
 
+        def to_leaderboard_entry(user_info):
+            last_round = user_info.last_round or -1
+            last_result = user_info.last_result or 0
 
+            last_image = next(
+                (img for img in reversed(user_info.ipfs_images or []) if img.round == last_round),
+                None
+            )
 
-        session_winner = self.sessions.get(winner)
-        if session_winner is None or session_winner.user is None:
-            raise ValueError("Winner session not found or not initialized")
-        session_master = self.sessions.get("master")
-        if session_master is None or session_master.user is None:
-            raise ValueError("Master session not found or not initialized")
+            return {
+                "username": user_info.username,
+                "result": last_result,
+                "last_evi": float(last_image.evi) if last_image and last_image.evi else 0.0,
+                "last_photo": last_image.image_cid if last_image else "",
+                "last_thumbnail": last_image.thumbnail_cid if last_image else "",
+                "balance": float(user_info.wallet.balance or 0)
+            }
 
-        await send_xrp(
-            session_master.user.wallet, 
-            session_winner.user.wallet.address, 
-            amount)
+        return {
+            "winners": [to_leaderboard_entry(u) for u in winners],
+            "losers": [to_leaderboard_entry(u) for u in losers],
+            "neutrals": [to_leaderboard_entry(u) for u in neutrals]
+        }
+
 
 user_pool = UserPool()

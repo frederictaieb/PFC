@@ -273,8 +273,8 @@ export default function GamePage() {
         .then(data => console.log(data))
 
         // Update Balances
-        console.log("triggering update_balances");
-        await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/userpool/update_balances`)
+        console.log("triggering refresh_balances");
+        await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/refresh_balances`)
         .then(res => res.json())
         .then(data => console.log(data));
 

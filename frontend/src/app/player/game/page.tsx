@@ -150,6 +150,10 @@ function GamePageContent() {
       try {
         const data = JSON.parse(event.data);
 
+        if (data.type == "broadcast_refresh_balances") {
+          console.log("Refreshing balance")
+        }
+
         if (data.type === "broadcast_reset") {
           // Cacher les emojis via message du serveur
           console.log("broadcast_reset received");

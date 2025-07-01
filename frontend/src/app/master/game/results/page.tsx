@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from 'next/navigation';
+
 
 const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_URL;
 const XRP_LOGO_URL = "/xrp-logo.svg";
+
+
 
 type Player = {
   username: string;
@@ -117,6 +121,8 @@ export default function HomePage() {
   const [losers, setLosers] = useState<Player[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
+  const router = useRouter();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -134,6 +140,21 @@ export default function HomePage() {
     fetchData();
   }, []);
 
+  const handleClose = () => {
+  
+    // Reset the round
+    try {
+      fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round_reset`, {
+        method: "POST",
+      });
+      console.log("🔁 Broadcast reset envoyé");
+    } catch (err) {
+      console.error("Erreur lors du broadcast reset", err);
+    }
+  
+    router.push('/master/game');
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 relative">
       {selectedPlayer && (
@@ -142,6 +163,13 @@ export default function HomePage() {
       <PlayerGrid group={winners} title="🏆 Winners" onSelect={setSelectedPlayer} />
       <PlayerGrid group={neutrals} title="😐 Neutrals" onSelect={setSelectedPlayer} />
       <PlayerGrid group={losers} title="🪀 Losers" onSelect={setSelectedPlayer} />
+      <button
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        onClick={handleClose}
+      >
+        Close
+     </button>
+      
     </div>
   );
 }

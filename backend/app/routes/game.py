@@ -6,9 +6,57 @@ import random
 from app.utils.logger import logger_init
 import logging
 from app.routes.hume import TTSRequest, synthesize_tts_json
+from pydub import AudioSegment
+import os
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+#BASE_DIR = os.path.dirname(__file__)
+
+BASE_DIR = os.getcwd()
+print(BASE_DIR)
+SOUNDS_DIR = os.path.join(BASE_DIR, "app", "public", "sounds")
+
+sounds = {
+    # voice 1
+    "one_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "1.mp3")),
+    "two_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "2.mp3")),
+    "three_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "3.mp3")),
+    "four_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "4.mp3")),
+    "five_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "5.mp3")),
+    "six_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "6.mp3")),
+    "seven_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "7.mp3")),
+    "eight_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "8.mp3")),
+    "nine_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "9.mp3")),
+    "ten_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "10.mp3")),
+    "attention_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "attention.mp3")),
+    "beready_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "beready.mp3")),
+    "nextround_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "nextround.mp3")),
+    "paper_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "paper.mp3")),
+    "scissors_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "scissors.mp3")),
+    "rock_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "rock.mp3")),
+
+    # voice 2
+    "one_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "1.mp3")),
+    "two_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "2.mp3")),
+    "three_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "3.mp3")),
+    "four_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "4.mp3")),
+    "five_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "5.mp3")),
+    "six_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "6.mp3")),
+    "seven_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "7.mp3")),
+    "eight_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "8.mp3")),
+    "nine_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "9.mp3")),
+    "ten_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "10.mp3")),
+    "attention_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "attention.mp3")),
+    "beready_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "beready.mp3")),
+    "nextround_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "nextround.mp3")),
+    "paper_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "paper.mp3")),
+    "scissors_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "scissors.mp3")),
+    "rock_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "rock.mp3")),
+    "round_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "round.mp3")),
+}
+
 
 SPEED_OF_SPEECH = 1
 DESCRIPTION_OF_SPEECH = "I am a man, with a metallic neutral voice and I am talking extremely fast"
@@ -96,19 +144,20 @@ async def start_round(request: Request):
     round_number = request.app.state.round_number
 
     await speak_and_broadcast(type_broadcast="announcement", value=f"Round {round_number}!")
-    await asyncio.sleep(SPEED_OF_SPEECH)
+    await asyncio.sleep(len(sounds["nextround_1"])/1000)
 
     # Étape 1 : introduction vocale
     await speak_and_broadcast(type_broadcast="announcement", value="Attention! Game is starting!")
-    await asyncio.sleep(SPEED_OF_SPEECH)
+    await asyncio.sleep(len(sounds["attention_1"])/1000)
 
     await speak_and_broadcast(type_broadcast="announcement", value="Be ready!")
-    await asyncio.sleep(SPEED_OF_SPEECH)
+    await asyncio.sleep(len(sounds["beready_1"])/1000)
+    await asyncio.sleep(3)
 
     # Étape 2 : décompte
     for i in range(1, 4):
         await speak_and_broadcast(type_broadcast="countdown", value=str(i))
-        await asyncio.sleep(SPEED_OF_SPEECH)
+        await asyncio.sleep(2)
 
     # Étape 3 : choix aléatoire du master
     result = random.randint(0, 2)

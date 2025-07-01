@@ -152,6 +152,16 @@ function GamePageContent() {
 
         if (data.type == "broadcast_refresh_balances") {
           console.log("Refreshing balance")
+          console.log("Refreshing balance");
+          if (usernameParam) {
+            const result = await getPlayer(usernameParam);
+            if (result.success) {
+              setPlayerInfo(result.data);
+            } else {
+              console.error("Erreur lors du refresh balance :", result.error);
+            }
+          }
+          return;
         }
 
         if (data.type === "broadcast_reset") {

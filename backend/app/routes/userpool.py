@@ -51,6 +51,11 @@ async def collect_pool_xrp():
 async def dispatch_pool_xrp():
     return await user_pool.dispatch_pool_xrp()
 
+
+@router.get("/update_balances")
+async def update_balances():
+    return await user_pool.update_balances()
+
 @router.get("/to_results", response_model=List[LeaderboardEntry])
 async def to_results():
     results: List[LeaderboardEntry] = []

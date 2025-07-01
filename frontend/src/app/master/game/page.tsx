@@ -13,9 +13,8 @@ export default function GamePage() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [hasPlayed, setHasPlayed] = useState(false);
     const [roundNumber, setRoundNumber] = useState(0);
+    const [voice, setVoice] = useState<"1" | "2">("1");
     const router = useRouter();
-
-    const VOICE: "1" | "2" = "2";
 
     const sounds = {
         // voice 1
@@ -94,6 +93,10 @@ export default function GamePage() {
         round_2: new Howl({ src: ['/sounds/voice2/round.mp3'] }),
       };
 
+    useEffect(() => {
+        setVoice("2");
+      }, []);
+
     // Fonction utilitaire locale pour base64 → Blob
     function base64ToBlob(base64: string, mime = "audio/wav") {
         const byteChars = atob(base64);
@@ -117,19 +120,19 @@ export default function GamePage() {
             if (data.type === "announcement") {
                 console.log("announcement", data);
                 if (data.value.startsWith("Round")) {
-                    if (VOICE === "1") {
+                    if (voice === "1") {
                         sounds.nextround_1.play();
                     } else {
                         sounds.nextround_2.play();
                     }
                 } else if (data.value === "Attention! Game is starting!") {
-                    if (VOICE === "1") {
+                    if (voice === "1") {
                         sounds.attention_1.play();
                     } else {
                         sounds.attention_2.play();
                     }
                 } else if (data.value === "Be ready!") {
-                    if (VOICE === "1") {
+                    if (voice === "1") {
                         sounds.beready_1.play();
                     } else {
                         sounds.beready_2.play();
@@ -146,19 +149,19 @@ export default function GamePage() {
             } else if (data.type === "countdown") {
                 console.log("countdown", data);
                 if (data.value === "1") {
-                    if (VOICE === "1") {
+                    if (voice === "1") {
                         sounds.n1_1.play();
                     } else {
                         sounds.n1_2.play();
                     }
                 } else if (data.value === "2") {
-                    if (VOICE === "1") {
+                    if (voice === "1") {
                         sounds.n2_1.play();
                     } else {
                         sounds.n2_2.play();
                     }
                 } else if (data.value === "3") {
-                    if (VOICE === "1") {
+                    if (voice === "1") {
                         sounds.n3_1.play();
                     } else {
                         sounds.n3_2.play();
@@ -179,19 +182,19 @@ export default function GamePage() {
             } else if (data.type === "result") {
                 console.log("result", data);
                 if (data.value === "0") {
-                    if (VOICE === "1") {
+                    if (voice === "1") {
                         sounds.rock_1.play();
                     } else {
                         sounds.rock_2.play();
                     }
                 } else if (data.value === "1") {
-                    if (VOICE === "1") {
+                    if (voice === "1") {
                         sounds.paper_1.play();
                     } else {
                         sounds.paper_2.play();
                     }
                 } else if (data.value === "2") {
-                    if (VOICE === "1") {
+                    if (voice === "1") {
                         sounds.scissors_1.play();
                     } else {
                         sounds.scissors_2.play();
@@ -224,7 +227,7 @@ export default function GamePage() {
             socket.close();
         };
 
-    }, []);
+    }, [voice]);
 
 
     useEffect(() => {
@@ -275,8 +278,6 @@ export default function GamePage() {
         .then(res => res.json())
         .then(data => console.log(data));
 
-
-        console.log("triggering collect_pool_xrp");
         router.push('/master/game/results');
     };
 

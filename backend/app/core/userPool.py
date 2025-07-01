@@ -206,5 +206,10 @@ class UserPool:
             "neutrals": [to_leaderboard_entry(u) for u in neutrals]
         }
 
+    async def update_balances(self):
+        logger.info(f"Updating balances for players")
+        players = self.get_players()
+        #Broadcast to all players to update their balances
+        
 
 user_pool = UserPool()

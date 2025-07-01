@@ -15,6 +15,8 @@ export default function GamePage() {
     const [roundNumber, setRoundNumber] = useState(0);
     const router = useRouter();
 
+    const VOICE: "1" | "2" = "2";
+
     const sounds = {
         // voice 1
         /*
@@ -55,16 +57,16 @@ export default function GamePage() {
         rock_2: new Audio('/sounds/voice2/rock.mp3'),
         round_2: new Audio('/sounds/voice2/round.mp3'),
         */
-        one_1: new Howl({ src: ['/sounds/voice1/1.mp3'] }),
-        two_1: new Howl({ src: ['/sounds/voice1/2.mp3'] }),
-        three_1: new Howl({ src: ['/sounds/voice1/3.mp3'] }),
-        four_1: new Howl({ src: ['/sounds/voice1/4.mp3'] }),
-        five_1: new Howl({ src: ['/sounds/voice1/5.mp3'] }),
-        six_1: new Howl({ src: ['/sounds/voice1/6.mp3'] }),
-        seven_1: new Howl({ src: ['/sounds/voice1/7.mp3'] }),
-        eight_1: new Howl({ src: ['/sounds/voice1/8.mp3'] }),
-        nine_1: new Howl({ src: ['/sounds/voice1/9.mp3'] }),
-        ten_1: new Howl({ src: ['/sounds/voice1/10.mp3'] }),
+        n1_1: new Howl({ src: ['/sounds/voice1/1.mp3'] }),
+        n2_1: new Howl({ src: ['/sounds/voice1/2.mp3'] }),
+        n3_1: new Howl({ src: ['/sounds/voice1/3.mp3'] }),
+        n4_1: new Howl({ src: ['/sounds/voice1/4.mp3'] }),
+        n5_1: new Howl({ src: ['/sounds/voice1/5.mp3'] }),
+        n6_1: new Howl({ src: ['/sounds/voice1/6.mp3'] }),
+        n7_1: new Howl({ src: ['/sounds/voice1/7.mp3'] }),
+        n8_1: new Howl({ src: ['/sounds/voice1/8.mp3'] }),
+        n9_1: new Howl({ src: ['/sounds/voice1/9.mp3'] }),
+        n10_1: new Howl({ src: ['/sounds/voice1/10.mp3'] }),
         attention_1: new Howl({ src: ['/sounds/voice1/attention.mp3'] }),
         beready_1: new Howl({ src: ['/sounds/voice1/beready.mp3'] }),
         nextround_1: new Howl({ src: ['/sounds/voice1/nextround.mp3'] }),
@@ -73,16 +75,16 @@ export default function GamePage() {
         rock_1: new Howl({ src: ['/sounds/voice1/rock.mp3'] }),
 
         // voice 2
-        one_2: new Howl({ src: ['/sounds/voice2/1.mp3'] }),
-        two_2: new Howl({ src: ['/sounds/voice2/2.mp3'] }),
-        three_2: new Howl({ src: ['/sounds/voice2/3.mp3'] }),
-        four_2: new Howl({ src: ['/sounds/voice2/4.mp3'] }),
-        five_2: new Howl({ src: ['/sounds/voice2/5.mp3'] }),
-        six_2: new Howl({ src: ['/sounds/voice2/6.mp3'] }),
-        seven_2: new Howl({ src: ['/sounds/voice2/7.mp3'] }),
-        eight_2: new Howl({ src: ['/sounds/voice2/8.mp3'] }),
-        nine_2: new Howl({ src: ['/sounds/voice2/9.mp3'] }),
-        ten_2: new Howl({ src: ['/sounds/voice2/10.mp3'] }),
+        n1_2: new Howl({ src: ['/sounds/voice2/1.mp3'] }),
+        n2_2: new Howl({ src: ['/sounds/voice2/2.mp3'] }),
+        n3_2: new Howl({ src: ['/sounds/voice2/3.mp3'] }),
+        n4_2: new Howl({ src: ['/sounds/voice2/4.mp3'] }),
+        n5_2: new Howl({ src: ['/sounds/voice2/5.mp3'] }),
+        n6_2: new Howl({ src: ['/sounds/voice2/6.mp3'] }),
+        n7_2: new Howl({ src: ['/sounds/voice2/7.mp3'] }),
+        n8_2: new Howl({ src: ['/sounds/voice2/8.mp3'] }),
+        n9_2: new Howl({ src: ['/sounds/voice2/9.mp3'] }),
+        n10_2: new Howl({ src: ['/sounds/voice2/10.mp3'] }),
         attention_2: new Howl({ src: ['/sounds/voice2/attention.mp3'] }),
         beready_2: new Howl({ src: ['/sounds/voice2/beready.mp3'] }),
         nextround_2: new Howl({ src: ['/sounds/voice2/nextround.mp3'] }),
@@ -115,11 +117,23 @@ export default function GamePage() {
             if (data.type === "announcement") {
                 console.log("announcement", data);
                 if (data.value.startsWith("Round")) {
-                    sounds.nextround_1.play();
+                    if (VOICE === "1") {
+                        sounds.nextround_1.play();
+                    } else {
+                        sounds.nextround_2.play();
+                    }
                 } else if (data.value === "Attention! Game is starting!") {
-                    sounds.attention_1.play();
+                    if (VOICE === "1") {
+                        sounds.attention_1.play();
+                    } else {
+                        sounds.attention_2.play();
+                    }
                 } else if (data.value === "Be ready!") {
-                    sounds.beready_1.play();
+                    if (VOICE === "1") {
+                        sounds.beready_1.play();
+                    } else {
+                        sounds.beready_2.play();
+                    }
                 } 
                 /*
                 if (data.audio_base64) {
@@ -132,11 +146,23 @@ export default function GamePage() {
             } else if (data.type === "countdown") {
                 console.log("countdown", data);
                 if (data.value === "1") {
-                    sounds.one_1.play();
+                    if (VOICE === "1") {
+                        sounds.n1_1.play();
+                    } else {
+                        sounds.n1_2.play();
+                    }
                 } else if (data.value === "2") {
-                    sounds.two_1.play();
+                    if (VOICE === "1") {
+                        sounds.n2_1.play();
+                    } else {
+                        sounds.n2_2.play();
+                    }
                 } else if (data.value === "3") {
-                    sounds.three_1.play();
+                    if (VOICE === "1") {
+                        sounds.n3_1.play();
+                    } else {
+                        sounds.n3_2.play();
+                    }
                 }
 
                 /*
@@ -153,11 +179,23 @@ export default function GamePage() {
             } else if (data.type === "result") {
                 console.log("result", data);
                 if (data.value === "0") {
-                    sounds.rock_1.play();
+                    if (VOICE === "1") {
+                        sounds.rock_1.play();
+                    } else {
+                        sounds.rock_2.play();
+                    }
                 } else if (data.value === "1") {
-                    sounds.paper_1.play();
+                    if (VOICE === "1") {
+                        sounds.paper_1.play();
+                    } else {
+                        sounds.paper_2.play();
+                    }
                 } else if (data.value === "2") {
-                    sounds.scissors_1.play();
+                    if (VOICE === "1") {
+                        sounds.scissors_1.play();
+                    } else {
+                        sounds.scissors_2.play();
+                    }
                 }
                 /*
                 if (data.audio_base64) {
@@ -230,6 +268,13 @@ export default function GamePage() {
         await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/userpool/dispatch_pool_xrp`)
         .then(res => res.json())
         .then(data => console.log(data))
+
+        // Update Balances
+        console.log("triggering update_balances");
+        await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/userpool/update_balances`)
+        .then(res => res.json())
+        .then(data => console.log(data));
+
 
         console.log("triggering collect_pool_xrp");
         router.push('/master/game/results');

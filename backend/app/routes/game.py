@@ -58,8 +58,8 @@ sounds = {
 }
 
 
-SPEED_OF_SPEECH = 1
-DESCRIPTION_OF_SPEECH = "I am a man, with a metallic neutral voice and I am talking extremely fast"
+VOICE = "1"
+
 
 async def speak_and_broadcast(type_broadcast: str, value: str, include_anonymous: bool = True):
     try:
@@ -144,30 +144,30 @@ async def start_round(request: Request):
     round_number = request.app.state.round_number
 
     await speak_and_broadcast(type_broadcast="announcement", value=f"Round {round_number}!")
-    await asyncio.sleep(len(sounds["nextround_1"])/1000)
+    await asyncio.sleep(len(sounds[f"nextround_{VOICE}"])/1000)
 
     # Étape 1 : introduction vocale
     await speak_and_broadcast(type_broadcast="announcement", value="Attention! Game is starting!")
-    await asyncio.sleep(len(sounds["attention_1"])/1000)
+    await asyncio.sleep(len(sounds[f"attention_{VOICE}"])/1000)
 
     await speak_and_broadcast(type_broadcast="announcement", value="Be ready!")
-    await asyncio.sleep(len(sounds["beready_1"])/1000)
+    await asyncio.sleep(len(sounds[f"beready_{VOICE}"])/1000)
     await asyncio.sleep(3)
 
     # Étape 2 : décompte
     for i in range(1, 4):
         await speak_and_broadcast(type_broadcast="countdown", value=str(i))
-        await asyncio.sleep(len(sounds[f"{i}_1"])/1000)
+        await asyncio.sleep(len(sounds[f"{i}_{VOICE}"])/1000)
 
     # Étape 3 : choix aléatoire du master
     result = random.randint(0, 2)
     await speak_and_broadcast(type_broadcast="result", value=str(result))
     if result == 0:
-        await asyncio.sleep(len(sounds["rock_1"])/1000)
+        await asyncio.sleep(len(sounds[f"rock_{VOICE}"])/1000)
     elif result == 1:
-        await asyncio.sleep(len(sounds["paper_1"])/1000)
+        await asyncio.sleep(len(sounds[f"paper_{VOICE}"])/1000)
     else:
-        await asyncio.sleep(len(sounds["scissors_1"])/1000)
+        await asyncio.sleep(len(sounds[f"scissors_{VOICE}"])/1000)
 
     #logger.info(f"🎯 Master gesture selected: {result}")
 

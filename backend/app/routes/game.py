@@ -20,16 +20,16 @@ SOUNDS_DIR = os.path.join(BASE_DIR, "app", "public", "sounds")
 
 sounds = {
     # voice 1
-    "one_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "1.mp3")),
-    "two_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "2.mp3")),
-    "three_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "3.mp3")),
-    "four_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "4.mp3")),
-    "five_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "5.mp3")),
-    "six_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "6.mp3")),
-    "seven_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "7.mp3")),
-    "eight_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "8.mp3")),
-    "nine_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "9.mp3")),
-    "ten_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "10.mp3")),
+    "1_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "1.mp3")),
+    "2_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "2.mp3")),
+    "3_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "3.mp3")),
+    "4_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "4.mp3")),
+    "5_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "5.mp3")),
+    "6_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "6.mp3")),
+    "7_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "7.mp3")),
+    "8_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "8.mp3")),
+    "9_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "9.mp3")),
+    "10_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "10.mp3")),
     "attention_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "attention.mp3")),
     "beready_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "beready.mp3")),
     "nextround_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "nextround.mp3")),
@@ -38,16 +38,16 @@ sounds = {
     "rock_1": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice1", "rock.mp3")),
 
     # voice 2
-    "one_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "1.mp3")),
-    "two_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "2.mp3")),
-    "three_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "3.mp3")),
-    "four_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "4.mp3")),
-    "five_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "5.mp3")),
-    "six_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "6.mp3")),
-    "seven_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "7.mp3")),
-    "eight_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "8.mp3")),
-    "nine_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "9.mp3")),
-    "ten_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "10.mp3")),
+    "1_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "1.mp3")),
+    "2_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "2.mp3")),
+    "3_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "3.mp3")),
+    "4_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "4.mp3")),
+    "5_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "5.mp3")),
+    "6_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "6.mp3")),
+    "7_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "7.mp3")),
+    "8_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "8.mp3")),
+    "9_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "9.mp3")),
+    "10_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "10.mp3")),
     "attention_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "attention.mp3")),
     "beready_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "beready.mp3")),
     "nextround_2": AudioSegment.from_file(os.path.join(SOUNDS_DIR, "voice2", "nextround.mp3")),
@@ -157,11 +157,17 @@ async def start_round(request: Request):
     # Étape 2 : décompte
     for i in range(1, 4):
         await speak_and_broadcast(type_broadcast="countdown", value=str(i))
-        await asyncio.sleep(2)
+        await asyncio.sleep(len(sounds[f"{i}_1"])/1000)
 
     # Étape 3 : choix aléatoire du master
     result = random.randint(0, 2)
     await speak_and_broadcast(type_broadcast="result", value=str(result))
+    if result == 0:
+        await asyncio.sleep(len(sounds["rock_1"])/1000)
+    elif result == 1:
+        await asyncio.sleep(len(sounds["paper_1"])/1000)
+    else:
+        await asyncio.sleep(len(sounds["scissors_1"])/1000)
 
     #logger.info(f"🎯 Master gesture selected: {result}")
 

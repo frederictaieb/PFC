@@ -187,22 +187,27 @@ function GamePageContent() {
             overlay.style.transition = "opacity 2s ease-in-out";
             overlay.style.zIndex = "5";
             canvasRef.current?.parentElement?.appendChild(overlay);
-            
-            // Déclenche l'opacité à 1 pour le fondu
+          
             requestAnimationFrame(() => {
               overlay.style.opacity = "1";
             });
           
-            // Éteindre la caméra et afficher le message
             setTimeout(() => {
-              if (videoRef.current?.srcObject) {
-                const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-                tracks.forEach(track => track.stop());
-                videoRef.current.srcObject = null;
+              // ✅ Arrêt propre de la caméra
+              if (videoRef.current) {
+                const video = videoRef.current;
+                const stream = video.srcObject as MediaStream;
+                if (stream) {
+                  stream.getTracks().forEach(track => track.stop());
+                }
+                video.srcObject = null;
+                video.removeAttribute("src");
+                video.load();
               }
           
               overlay.innerHTML = `<div style="color: white; font-size: 2rem; display: flex; align-items: center; justify-content: center; height: 100%;">Merci d'avoir joué !🙏</div>`;
-            }, 2000); // après le fondu
+            }, 2000);
+          
             router.push("/");
           }
           

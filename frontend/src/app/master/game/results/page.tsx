@@ -4,11 +4,8 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
 
-
 const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_URL;
 const XRP_LOGO_URL = "/xrp-logo.svg";
-
-
 
 type Player = {
   username: string;
@@ -16,17 +13,18 @@ type Player = {
   last_photo: string;
   last_thumbnail: string;
   balance: number;
+  group?: string; // 👈 ajout du group
 };
 
 const ipfsToUrl = (cid: string) => `${IPFS_GATEWAY}${cid}`;
 
-const getPlayerBorder = (result: number) => {
-  switch (result) {
-    case 1:
+const getPlayerBorder = (player: Player) => {
+  switch (player.group) {
+    case 'winner':
       return "border-green-500 hover:border-green-600";
-    case 0:
+    case 'neutral':
       return "border-black hover:border-black";
-    case -1:
+    case 'loser':
       return "border-red-500 hover:border-red-600";
     default:
       return "border-gray-300";
@@ -37,7 +35,7 @@ function PlayerCard({ player, onClick }: { player: Player; onClick: () => void }
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-lg p-4 text-center border transition transform hover:scale-105 cursor-pointer ${getPlayerBorder(player.result)}`}
+      className={`bg-white rounded-lg p-4 text-center border transition transform hover:scale-105 cursor-pointer ${getPlayerBorder(player)}`}
     >
       <h3 className="font-semibold text-lg mb-2 text-black">
         {player.username.charAt(0).toUpperCase() + player.username.slice(1)}
@@ -129,8 +127,15 @@ export default function HomePage() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/userpool/leaderboard`);
         if (!res.ok) throw new Error("Failed to fetch leaderboard");
         const data = await res.json();
-        setWinners(data.winners);
-        setNeutrals(data.neutrals);
+
+        // 👇 Ajout du tag group
+        const winnersWithGroup = data.winners.map((p: Player) => ({ ...p, group: 'winner' }));
+        const neutralsWithGroup = data.neutrals.map((p: Player) => ({ ...p, group: 'neutral' }));
+        const losersWithGroup = data.losers.map((p: Player) => ({ ...p, group: 'loser' }));
+
+        setWinners(winnersWithGroup);
+        setNeutrals(neutralsWithGroup);
+        setLosers(losersWithGroup);
 
         const activeCount = data.winners.length + data.neutrals.length;
         if (activeCount === 1) {
@@ -138,8 +143,6 @@ export default function HomePage() {
         } else if (activeCount === 0) {
           alert("💀 PERDU !");
         }
-
-        setLosers(data.losers);
       } catch (err) {
         console.error(err);
       }
@@ -149,8 +152,6 @@ export default function HomePage() {
   }, []);
 
   const handleClose = () => {
-  
-    // Reset the round
     try {
       fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/game/round_reset`, {
         method: "POST",
@@ -159,7 +160,7 @@ export default function HomePage() {
     } catch (err) {
       console.error("Erreur lors du broadcast reset", err);
     }
-  
+
     router.push('/master/game');
   }
 
@@ -168,16 +169,18 @@ export default function HomePage() {
       {selectedPlayer && (
         <PlayerModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />
       )}
-      <PlayerGrid group={winners} title="🏆 Winners" onSelect={setSelectedPlayer} />
-      <PlayerGrid group={neutrals} title="😐 Neutrals" onSelect={setSelectedPlayer} />
+      <PlayerGrid
+        group={[...winners, ...neutrals]}
+        title="🏆 Winners & 😐 Neutrals"
+        onSelect={setSelectedPlayer}
+      />
       <PlayerGrid group={losers} title="💀 Losers" onSelect={setSelectedPlayer} />
       <button
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         onClick={handleClose}
       >
         Close
-     </button>
-      
+      </button>
     </div>
   );
 }

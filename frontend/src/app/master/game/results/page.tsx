@@ -131,6 +131,14 @@ export default function HomePage() {
         const data = await res.json();
         setWinners(data.winners);
         setNeutrals(data.neutrals);
+
+        const activeCount = data.winners.length + data.neutrals.length;
+        if (activeCount === 1) {
+          alert("🏆 WINNER !");
+        } else if (activeCount === 0) {
+          alert("💀 PERDU !");
+        }
+
         setLosers(data.losers);
       } catch (err) {
         console.error(err);
@@ -162,7 +170,7 @@ export default function HomePage() {
       )}
       <PlayerGrid group={winners} title="🏆 Winners" onSelect={setSelectedPlayer} />
       <PlayerGrid group={neutrals} title="😐 Neutrals" onSelect={setSelectedPlayer} />
-      <PlayerGrid group={losers} title="🪀 Losers" onSelect={setSelectedPlayer} />
+      <PlayerGrid group={losers} title="💀 Losers" onSelect={setSelectedPlayer} />
       <button
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         onClick={handleClose}

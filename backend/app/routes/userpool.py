@@ -7,6 +7,7 @@ from typing import List
 from app.models.user import LeaderboardEntry
 from app.models.user import HasPlayedRequest
 from app.models.leaderboard import LeaderboardResponse
+from fastapi import Request
 
 
 
@@ -51,11 +52,6 @@ async def collect_pool_xrp():
 async def dispatch_pool_xrp():
     return await user_pool.dispatch_pool_xrp()
 
-
-@router.get("/update_balances")
-async def update_balances():
-    return await user_pool.update_balances()
-
 @router.get("/to_results", response_model=List[LeaderboardEntry])
 async def to_results():
     results: List[LeaderboardEntry] = []
@@ -95,5 +91,5 @@ async def to_results():
     return results
 
 @router.get("/leaderboard", response_model=LeaderboardResponse)
-async def get_leaderboard_endpoint():
-    return await user_pool.get_leaderboard()
+async def get_leaderboard_endpoint(request:Request):
+    return await user_pool.get_leaderboard(request)

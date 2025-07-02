@@ -102,7 +102,7 @@ export default function RegisterPage() {
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="px-4 py-4 border rounded-xl text-lg w-64 text-center"
+          className="px-4 py-4 border rounded-xl text-lg w-64 text-center bg-white text-black"
           placeholder="Enter username"
           disabled={clicked || gameStarted || countdown !== null}
         />

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 from typing import List
 from app.models.user import UserInfo
+from fastapi import Request
 
 logger_init(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -177,10 +178,31 @@ class UserPool:
         return {"message": "No winners or cash pool is too low"}
 
     
-    async def get_leaderboard(self):
-        winners = [await u.to_user_info() for u in self.get_winners()]
-        losers = [await u.to_user_info() for u in self.get_losers()]
-        neutrals = [await u.to_user_info() for u in self.get_neutral()]
+    async def get_leaderboard(self, request: Request):
+       # winners = [await u.to_user_info() for u in self.get_winners()]
+       # losers = [await u.to_user_info() for u in self.get_losers()]
+       # neutrals = [await u.to_user_info() for u in self.get_neutral()]
+
+
+        winners = [
+            await u.to_user_info()
+            for u in self.get_winners()
+            if u.last_round == request.app.state.round_number
+        ]
+        losers = [
+            await u.to_user_info()
+            for u in self.get_losers()
+            if u.last_round == request.app.state.round_number
+        ]
+        neutrals = [
+            await u.to_user_info()
+            for u in self.get_neutral()
+            if u.last_round == request.app.state.round_number
+        ]
+
+        logger.info(winners)
+        logger.info(losers)
+        logger.info(neutrals)
 
         def to_leaderboard_entry(user_info):
             last_round = user_info.last_round or -1
@@ -205,11 +227,6 @@ class UserPool:
             "losers": [to_leaderboard_entry(u) for u in losers],
             "neutrals": [to_leaderboard_entry(u) for u in neutrals]
         }
-
-    async def update_balances(self):
-        logger.info(f"Updating balances for players")
-        players = self.get_players()
-        #Broadcast to all players to update their balances
         
 
 user_pool = UserPool()

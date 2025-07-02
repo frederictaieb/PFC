@@ -209,7 +209,7 @@ function GamePageContent() {
             }, 2000);
           
             router.push("/");
-          }
+          } 
           
           return;
         }
@@ -295,8 +295,8 @@ function GamePageContent() {
       {playerInfo && (
         <div style={{ marginBottom: "10px", textAlign: "center" }}>
           <div><strong>Utilisateur :</strong> {playerInfo.username}</div>
-          <p className="font-medium text-black mt-1 flex items-center justify-center gap-1">
-            <span>{playerInfo.wallet.balance}</span>
+          <p className="font-medium text-black bg-white mt-1 flex items-center justify-center gap-1">
+            <span className="text-black bg-white">{playerInfo.wallet.balance}</span>
             <img src={XRP_LOGO_URL} alt="XRP" className="w-4 h-4" />
           </p>
         </div>

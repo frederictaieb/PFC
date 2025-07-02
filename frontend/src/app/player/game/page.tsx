@@ -59,7 +59,7 @@ function GamePageContent() {
     return computeResult(me, opponent) === 1 || computeResult(me, opponent) === 0;
   }, []);
 
-  async function resizeBase64Image(base64: string, maxWidth = 30, maxHeight = 30): Promise<string> {
+  async function resizeBase64Image(base64: string, maxWidth = 100, maxHeight = 100): Promise<string> {
     return new Promise((resolve, reject) => {
       const img = document.createElement('img');
       img.onload = function () {
